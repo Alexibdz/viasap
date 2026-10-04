@@ -1,0 +1,41 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import FeaturedRail from "@/components/store/FeaturedRail";
+import MenuNav from "@/components/store/MenuNav";
+import MenuSection from "@/components/store/MenuSection";
+import StoreHero from "@/components/store/StoreHero";
+import { getBusiness, getMenu } from "@/lib/data";
+import { featuredProducts } from "@/lib/menu";
+
+export default async function StorePage({ params }: PageProps<"/[slug]">) {
+  const { slug } = await params;
+  const [business, menu] = await Promise.all([getBusiness(slug), getMenu(slug)]);
+  if (!business || !menu) notFound();
+
+  const featured = featuredProducts(menu);
+  const sections = [
+    ...(featured.length ? [{ id: "destacados", name: "Lo más pedido" }] : []),
+    ...menu.map(({ id, name }) => ({ id, name })),
+  ];
+
+  return (
+    <div className="storefront">
+      <StoreHero />
+      <MenuNav sections={sections} />
+      <main className="menu">
+        {featured.length > 0 && <FeaturedRail slug={slug} products={featured} />}
+        {menu.map((category) => (
+          <MenuSection key={category.id} slug={slug} category={category} />
+        ))}
+        <footer className="store-footer">
+          <p>
+            <strong>{business.name}</strong> · {business.address.street}, {business.address.city}
+          </p>
+          <p>
+            Pedidos online con <Link href="/">viasap</Link>
+          </p>
+        </footer>
+      </main>
+    </div>
+  );
+}
