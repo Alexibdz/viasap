@@ -14,6 +14,7 @@ import {
   removeCategory,
   removeProduct,
   updateProductFlags,
+  withoutErrors,
   type ProductDraft,
 } from "./admin-forms";
 import { findProduct } from "./menu";
@@ -155,6 +156,19 @@ describe("productos", () => {
   });
 });
 
+describe("errores del formulario", () => {
+  it("borra los del campo editado y los de sus filas", () => {
+    const errors = { name: "Falta", "variants.0.price": "Falta", "variants.1.name": "Falta", variantsOk: "x" };
+    expect(withoutErrors(errors, ["variants"])).toEqual({ name: "Falta", variantsOk: "x" });
+    expect(withoutErrors(errors, ["variants.1.name", "name"])).toEqual({ "variants.0.price": "Falta", variantsOk: "x" });
+  });
+
+  it("devuelve el mismo objeto si no había nada para borrar", () => {
+    const errors = { name: "Falta" };
+    expect(withoutErrors(errors, ["price"])).toBe(errors);
+  });
+});
+
 describe("categorías", () => {
   it("crea categorías y no borra grupos ni categorías con productos", () => {
     const menu = freshMenu();
@@ -166,6 +180,21 @@ describe("categorías", () => {
     expect(dropGroup.ok).toBe(false);
     expect(removeCategory(menu, "pollo").ok).toBe(false);
     expect(removeCategory(menu, "postres").ok).toBe(true);
+  });
+
+  it("con un solo grupo sin nombre usa el de la categoría (como arranca el formulario)", () => {
+    const menu = freshMenu();
+    const created = applyCategory(menu, { id: null, name: "Postres", imageUrl: "", groups: [{ id: null, name: "" }] });
+    expect(created).toEqual({ ok: true, value: "postres" });
+    expect(menu.at(-1)?.subcategories).toEqual([{ id: "postres", name: "Postres", products: [] }]);
+
+    const twoGroups = applyCategory(menu, {
+      id: null,
+      name: "Bebidas frías",
+      imageUrl: "",
+      groups: [{ id: null, name: "Gaseosas" }, { id: null, name: "" }],
+    });
+    expect(twoGroups).toEqual({ ok: false, errors: { "groups.1.name": "Falta el nombre del grupo." } });
   });
 });
 

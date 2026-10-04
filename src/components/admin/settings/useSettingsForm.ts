@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ActionResult } from "@/app/admin/actions";
 import { useToast } from "@/components/store/ToastProvider";
-import type { FieldErrors } from "@/lib/admin-forms";
+import { withoutErrors, type FieldErrors } from "@/lib/admin-forms";
 
 /** Estado de un formulario de ajustes: valores, errores por campo y guardado. */
 export function useSettingsForm<T extends object>(
@@ -34,7 +34,11 @@ export function useSettingsForm<T extends object>(
   return {
     value,
     setValue,
-    update: (patch: Partial<T>) => setValue((current) => ({ ...current, ...patch })),
+    /** Cambia campos y borra sus errores ("address" también borra "address.street"). */
+    update: (patch: Partial<T>) => {
+      setValue((current) => ({ ...current, ...patch }));
+      setErrors((current) => withoutErrors(current, Object.keys(patch)));
+    },
     errors,
     saving,
     dirty: JSON.stringify(value) !== JSON.stringify(saved),

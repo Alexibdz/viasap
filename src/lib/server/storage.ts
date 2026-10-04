@@ -11,7 +11,8 @@ import path from "node:path";
 const DATA_DIR = process.env.VIASAP_DATA_DIR ?? path.join(process.cwd(), "data");
 
 export function dataPath(...segments: string[]): string {
-  return path.join(DATA_DIR, ...segments);
+  // Son datos de ejecución, no código: sin el comentario, el build empaqueta todo el proyecto.
+  return path.join(/*turbopackIgnore: true*/ DATA_DIR, ...segments);
 }
 
 export async function readJson<T>(file: string): Promise<T | null> {

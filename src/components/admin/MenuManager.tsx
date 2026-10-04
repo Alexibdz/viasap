@@ -158,7 +158,9 @@ export default function MenuManager({ menu }: { menu: Category[] }) {
                               <strong>{product.name}</strong>
                               <small>
                                 {hasNamedVariants(product) ? `desde ${formatMoney(priceFrom(product))}` : formatMoney(priceFrom(product))}
-                                {product.optionGroups?.length ? ` · ${product.optionGroups.length} grupos de opciones` : ""}
+                                {product.optionGroups?.length
+                                  ? ` · ${product.optionGroups.length} ${product.optionGroups.length === 1 ? "grupo" : "grupos"} de opciones`
+                                  : ""}
                               </small>
                             </span>
                           </Link>

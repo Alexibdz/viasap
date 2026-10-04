@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { JournalText } from "react-bootstrap-icons";
 import FeaturedRail from "@/components/store/FeaturedRail";
 import MenuNav from "@/components/store/MenuNav";
 import MenuSection from "@/components/store/MenuSection";
@@ -21,8 +22,14 @@ export default async function StorePage({ params }: PageProps<"/[slug]">) {
   return (
     <div className="storefront">
       <StoreHero />
-      <MenuNav sections={sections} />
+      {sections.length > 0 && <MenuNav sections={sections} />}
       <main className="menu">
+        {menu.length === 0 && (
+          <div className="empty-state">
+            <JournalText size={28} aria-hidden />
+            <p>Estamos armando el menú. Volvé en un rato.</p>
+          </div>
+        )}
         {featured.length > 0 && <FeaturedRail slug={slug} products={featured} />}
         {menu.map((category) => (
           <MenuSection key={category.id} slug={slug} category={category} />

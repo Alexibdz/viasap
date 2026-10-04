@@ -63,10 +63,15 @@ function PrintTicket({ order, business }: { order: StoredOrder; business: Busine
       <p className="adm-print-strong">
         {f.method === "delivery" ? `ENVÍO: ${f.address}` : "RETIRA EN EL LOCAL"}
       </p>
+      {/* Lo que necesita quien lleva el pedido: piso, depto, referencias y el vuelto. */}
+      {f.method === "delivery" && (f.floor || f.apartment) && (
+        <p>{[f.floor && `Piso ${f.floor}`, f.apartment && `Depto ${f.apartment}`].filter(Boolean).join(" · ")}</p>
+      )}
       {f.method === "delivery" && f.references && <p>Ref.: {f.references}</p>}
       <p>
         {paymentLabel(order.payment.method)} · TOTAL {formatMoney(order.totals.total)}
       </p>
+      {order.payment.method !== "transfer" && <p>{paymentDetail(order)}</p>}
     </div>
   );
 }

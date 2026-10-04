@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dobleQueso } from "@/data/stores/doble-queso";
 import { laEsquina } from "@/data/stores/la-esquina";
-import { featuredProducts, findProduct, isQuickAdd, showsSubcategoryName } from "./menu";
+import { featuredProducts, findProduct, isQuickAdd, showsSubcategoryName, visibleMenu } from "./menu";
 import type { Category } from "./types";
 
 describe("menú", () => {
@@ -37,6 +37,25 @@ describe("menú", () => {
     expect(isQuickAdd(find("agua"))).toBe(false); // agotado
     expect(isQuickAdd(find("cerveza"))).toBe(false); // tiene presentaciones
     expect(isQuickAdd(find("patitas"))).toBe(false); // tiene salsas obligatorias
+  });
+
+  it("no muestra categorías ni grupos vacíos, y un grupo vacío no cuenta para los títulos", () => {
+    const menu: Category[] = [
+      { id: "postres", name: "Postres", subcategories: [{ id: "postres", name: "Postres", products: [] }] },
+      {
+        id: "minutas",
+        name: "Minutas",
+        subcategories: [
+          { id: "carne", name: "De carne", products: [{ id: "mila", name: "Milanesa", price: 9000, soldOut: true }] },
+          { id: "pollo", name: "De pollo", products: [] },
+        ],
+      },
+    ];
+    const visible = visibleMenu(menu);
+    expect(visible.map((c) => c.id)).toEqual(["minutas"]);
+    expect(visible[0].subcategories.map((s) => s.id)).toEqual(["carne"]);
+    expect(menu[1].subcategories).toHaveLength(2); // no modifica el original
+    expect(findProduct(menu, "mila")?.sectionLabel).toBe("Minutas");
   });
 
   it("los destacados no incluyen productos agotados", () => {
