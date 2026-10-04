@@ -8,7 +8,7 @@ import { deleteProduct, saveProduct } from "@/app/admin/actions";
 import ProductCard from "@/components/store/ProductCard";
 import { useStore } from "@/components/store/StoreProvider";
 import { useToast } from "@/components/store/ToastProvider";
-import { NEW_GROUP, previewProduct, type FieldErrors, type ProductDraft } from "@/lib/admin-forms";
+import { NEW_GROUP, previewProduct, withoutErrors, type FieldErrors, type ProductDraft } from "@/lib/admin-forms";
 import { describeGroupRule } from "@/lib/pricing";
 import ImageField from "./ImageField";
 import { Field, MoneyInput, Panel, Switch } from "./ui";
@@ -50,18 +50,30 @@ export default function ProductEditor({
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
   const category = categories.find((c) => c.id === draft.categoryId);
 
-  const update = (patch: Partial<ProductDraft>) => setDraft((current) => ({ ...current, ...patch }));
-  const updateVariant = (index: number, patch: Partial<ProductDraft["variants"][number]>) =>
+  // Al editar un campo se borra su error (agregar o quitar filas borra los de toda la lista).
+  const clearErrors = (prefix: string, patch: object) =>
+    setErrors((current) => withoutErrors(current, Object.keys(patch).map((key) => prefix + key)));
+  const update = (patch: Partial<ProductDraft>) => {
+    setDraft((current) => ({ ...current, ...patch }));
+    clearErrors("", patch);
+  };
+  const updateVariant = (index: number, patch: Partial<ProductDraft["variants"][number]>) => {
     setDraft((d) => ({ ...d, variants: d.variants.map((v, i) => (i === index ? { ...v, ...patch } : v)) }));
-  const updateGroup = (index: number, patch: Partial<GroupDraft>) =>
+    clearErrors(`variants.${index}.`, patch);
+  };
+  const updateGroup = (index: number, patch: Partial<GroupDraft>) => {
     setDraft((d) => ({ ...d, optionGroups: d.optionGroups.map((g, i) => (i === index ? { ...g, ...patch } : g)) }));
-  const updateOption = (groupIndex: number, optionIndex: number, patch: Partial<OptionDraft>) =>
+    clearErrors(`optionGroups.${index}.`, patch);
+  };
+  const updateOption = (groupIndex: number, optionIndex: number, patch: Partial<OptionDraft>) => {
     setDraft((d) => ({
       ...d,
       optionGroups: d.optionGroups.map((g, i) =>
         i === groupIndex ? { ...g, options: g.options.map((o, j) => (j === optionIndex ? { ...o, ...patch } : o)) } : g,
       ),
     }));
+    clearErrors(`optionGroups.${groupIndex}.options.${optionIndex}.`, patch);
+  };
 
   async function save() {
     setSaving(true);
@@ -306,7 +318,7 @@ export default function ProductEditor({
                   <div className="adm-row adm-row--option adm-row--labels" aria-hidden>
                     <span>Opción</span>
                     <span>Precio extra</span>
-                    <span>Máx.</span>
+                    <span>Cantidad</span>
                     <span />
                   </div>
                   {group.options.map((option, o) => (
@@ -325,17 +337,21 @@ export default function ProductEditor({
                         value={option.price}
                         onChange={(price) => updateOption(g, o, { price })}
                       />
-                      <input
-                        className="adm-input adm-input--qty"
-                        type="number"
-                        inputMode="numeric"
-                        min={1}
-                        max={20}
-                        placeholder="1"
-                        aria-label={`Cuántas veces se puede elegir la opción ${o + 1}`}
-                        value={option.maxQty}
-                        onChange={(e) => updateOption(g, o, { maxQty: e.target.value })}
-                      />
+                      {/* "máx." queda a la vista: en el celular no hay títulos de columna. */}
+                      <span className="adm-unit adm-unit--before">
+                        <span aria-hidden>máx.</span>
+                        <input
+                          className="adm-input adm-input--qty"
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          max={20}
+                          placeholder="1"
+                          aria-label={`Cuántas veces se puede elegir la opción ${o + 1}`}
+                          value={option.maxQty}
+                          onChange={(e) => updateOption(g, o, { maxQty: e.target.value })}
+                        />
+                      </span>
                       <button
                         type="button"
                         className="adm-icon-btn"

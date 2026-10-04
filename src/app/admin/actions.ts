@@ -41,8 +41,11 @@ const SAVE_FAILED = { ok: false, error: "No pudimos guardar los cambios. Probá 
 const isDirection = (value: unknown): value is -1 | 1 => value === -1 || value === 1;
 
 /** Refresca la tienda pública, la portada y el panel después de un cambio. */
-function refresh(slug: string) {
-  revalidatePath(`/${slug}`, "layout");
+function refresh() {
+  // Las páginas de las tiendas son estáticas y Next las guarda por archivo de ruta
+  // (app/[slug]/layout.tsx): con la URL literal ("/doble-queso") no encuentra nada.
+  // El patrón invalida todas las tiendas, que se regeneran en la próxima visita.
+  revalidatePath("/[slug]", "layout");
   revalidatePath("/admin", "layout");
   revalidatePath("/");
 }
@@ -60,7 +63,7 @@ async function editStore(change: (store: StoreSeed) => ActionResult): Promise<Ac
   } catch {
     return SAVE_FAILED;
   }
-  if (outcome.result.ok) refresh(session.business.slug);
+  if (outcome.result.ok) refresh();
   return outcome.result;
 }
 

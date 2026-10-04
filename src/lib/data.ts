@@ -1,6 +1,6 @@
 import "server-only";
 
-import { findProduct } from "./menu";
+import { findProduct, visibleMenu } from "./menu";
 import { listStoreSlugs, loadStore } from "./server/stores";
 import type { Business, Category, Coupon, ProductContext } from "./types";
 
@@ -17,8 +17,10 @@ export async function getBusiness(slug: string): Promise<Business | null> {
   return (await loadStore(slug))?.business ?? null;
 }
 
+/** El menú tal como se muestra: sin categorías ni grupos vacíos. */
 export async function getMenu(slug: string): Promise<Category[] | null> {
-  return (await loadStore(slug))?.menu ?? null;
+  const store = await loadStore(slug);
+  return store ? visibleMenu(store.menu) : null;
 }
 
 export async function getCategory(slug: string, categoryId: string): Promise<Category | null> {

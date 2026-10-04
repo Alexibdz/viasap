@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PencilSquare, PlusLg, TicketPerforated, Trash3 } from "react-bootstrap-icons";
 import { deleteCoupon, saveCoupon, setCouponActive } from "@/app/admin/actions";
 import { useToast } from "@/components/store/ToastProvider";
-import type { FieldErrors } from "@/lib/admin-forms";
+import { withoutErrors, type FieldErrors } from "@/lib/admin-forms";
 import { formatMoney } from "@/lib/format";
 import { describeCoupon } from "@/lib/pricing";
 import type { Coupon } from "@/lib/types";
@@ -37,7 +37,11 @@ function CouponForm({
   const [draft, setDraft] = useState(() => toDraft(original ?? undefined));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [saving, setSaving] = useState(false);
-  const update = (patch: Partial<CouponDraft>) => setDraft((d) => ({ ...d, ...patch }));
+  const update = (patch: Partial<CouponDraft>) => {
+    setDraft((d) => ({ ...d, ...patch }));
+    // Cambiar el tipo de descuento también invalida el error del valor.
+    setErrors((current) => withoutErrors(current, "type" in patch ? ["type", "value"] : Object.keys(patch)));
+  };
 
   async function save() {
     setSaving(true);

@@ -3,10 +3,10 @@ import type { Category, Product, ProductContext, SearchEntry, Subcategory } from
 
 /**
  * ¿Vale la pena mostrar el nombre del grupo? No cuando la categoría tiene un solo
- * grupo, ni cuando el grupo tiene un único producto con su mismo nombre.
+ * grupo con productos, ni cuando el grupo tiene un único producto con su mismo nombre.
  */
 export function showsSubcategoryName(category: Category, subcategory: Subcategory): boolean {
-  if (category.subcategories.length < 2) return false;
+  if (category.subcategories.filter((s) => s.products.length).length < 2) return false;
   const [only] = subcategory.products;
   return !(subcategory.products.length === 1 && only.name.toLowerCase() === subcategory.name.toLowerCase());
 }
@@ -14,6 +14,16 @@ export function showsSubcategoryName(category: Category, subcategory: Subcategor
 /** Encabezado del producto en el mensaje de WhatsApp: "Minutas · De pollo" o "Bebidas". */
 export function sectionLabel(category: Category, subcategory: Subcategory): string {
   return showsSubcategoryName(category, subcategory) ? `${category.name} · ${subcategory.name}` : category.name;
+}
+
+/**
+ * El menú que ve el cliente: sin grupos vacíos ni categorías sin productos (por
+ * ejemplo, una categoría recién creada en el panel). Los agotados se muestran.
+ */
+export function visibleMenu(menu: Category[]): Category[] {
+  return menu
+    .map((category) => ({ ...category, subcategories: category.subcategories.filter((s) => s.products.length) }))
+    .filter((category) => category.subcategories.length > 0);
 }
 
 export function categoryProducts(category: Category): Product[] {

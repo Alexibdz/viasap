@@ -26,6 +26,20 @@ const field = (record: unknown, key: string): unknown => (isRecord(record) ? rec
 const done = <T>(value: T, errors: FieldErrors): FormResult<T> =>
   Object.keys(errors).length ? { ok: false, errors } : { ok: true, value };
 
+/**
+ * Saca los errores de los campos que se acaban de editar: "variants" también borra
+ * "variants.0.price". Si no había ninguno, devuelve el mismo objeto (no re-renderiza).
+ */
+export function withoutErrors(errors: FieldErrors, fields: string[]): FieldErrors {
+  const stale = Object.keys(errors).filter((key) =>
+    fields.some((field) => key === field || key.startsWith(`${field}.`)),
+  );
+  if (!stale.length) return errors;
+  const next = { ...errors };
+  for (const key of stale) delete next[key];
+  return next;
+}
+
 /** Fotos: subidas desde el panel (/media/...) o las de ejemplo (/demo/...). */
 const IMAGE_URL = /^\/(media|demo)\/[A-Za-z0-9._/-]{1,200}$/;
 export function cleanImageUrl(value: unknown): string | undefined {
@@ -280,8 +294,10 @@ export function applyCategory(menu: Category[], draft: unknown): FormResult<stri
   const rows = list(field(draft, "groups")).slice(0, 20);
   const taken = new Set<string>();
   const groups = rows.map((row, i) => {
-    const groupName = cleanText(field(row, "name"), 40);
-    if (!groupName) errors[`groups.${i}.name`] = "Falta el nombre del grupo.";
+    // Con un solo grupo no se muestra ningún subtítulo: si quedó sin nombre, usa el de la categoría.
+    const single = rows.length === 1;
+    const groupName = cleanText(field(row, "name"), 40) || (single ? name : "");
+    if (!groupName && !single) errors[`groups.${i}.name`] = "Falta el nombre del grupo.";
     const previous = existing?.subcategories.find((s) => s.id === field(row, "id"));
     const id = previous && !taken.has(previous.id) ? previous.id : uniqueId(groupName || name, taken, "grupo");
     taken.add(id);

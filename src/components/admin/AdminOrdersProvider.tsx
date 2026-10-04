@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   createContext,
   use,
@@ -20,6 +21,7 @@ import type { StoredOrder } from "@/lib/types";
 // aunque el panel esté abierto en otra sección.
 
 const POLL_MS = 8000;
+const PANEL_TITLE = "Panel · viasap";
 
 interface AdminOrders {
   orders: StoredOrder[];
@@ -36,6 +38,7 @@ export function AdminOrdersProvider({ initialOrders, children }: { initialOrders
   const [orders, setOrders] = useState(initialOrders);
   const [soundOn, setSoundOn] = usePersistentFlag("viasap:admin:sound", true);
   const notify = useToast();
+  const router = useRouter();
   const known = useRef<Set<string> | null>(null);
 
   const receive = useEffectEvent((fresh: StoredOrder[]) => {
@@ -50,13 +53,15 @@ export function AdminOrdersProvider({ initialOrders, children }: { initialOrders
     setOrders(fresh);
   });
 
+  const sessionExpired = useEffectEvent(() => router.replace("/admin/ingresar"));
+
   useEffect(() => {
     let stopped = false;
     async function poll() {
       try {
         const response = await fetch("/api/admin/pedidos", { cache: "no-store" });
         if (response.status === 401) {
-          window.location.assign("/admin/ingresar");
+          sessionExpired();
           return;
         }
         if (response.ok && !stopped) receive((await response.json()).orders);
@@ -79,8 +84,20 @@ export function AdminOrdersProvider({ initialOrders, children }: { initialOrders
   const pendingCount = orders.filter((order) => order.status === "pending").length;
 
   // El contador en la pestaña del navegador se ve aunque el panel esté en segundo plano.
+  // Next aplica el título de la metadata después de hidratar y al navegar: si lo pisa,
+  // se vuelve a poner.
   useEffect(() => {
-    document.title = pendingCount ? `(${pendingCount}) Pedidos nuevos · viasap` : "Panel · viasap";
+    const title = pendingCount ? `(${pendingCount}) Pedidos nuevos · viasap` : PANEL_TITLE;
+    const apply = () => {
+      if (document.title !== title) document.title = title;
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.head, { childList: true, subtree: true, characterData: true });
+    return () => {
+      observer.disconnect();
+      document.title = PANEL_TITLE;
+    };
   }, [pendingCount]);
 
   const replaceOrder = useCallback(

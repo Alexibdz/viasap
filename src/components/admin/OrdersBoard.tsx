@@ -13,11 +13,21 @@ import OrderCard from "./OrderCard";
 import OrderDrawer from "./OrderDrawer";
 import { useOrderActions } from "./useOrderActions";
 
-const COLUMNS: { status: OrderStatus; title: string; empty: string }[] = [
-  { status: "pending", title: "Nuevos", empty: "Cuando entre un pedido lo vas a ver acá (y vas a escuchar un aviso)." },
-  { status: "preparing", title: "En preparación", empty: "Nada en la cocina por ahora." },
-  { status: "ready", title: "Listos / en camino", empty: "Ningún pedido esperando." },
+// `tab` es el título corto de las pestañas del celular, donde se ve una columna por vez.
+const COLUMNS: { status: OrderStatus; title: string; tab: string; empty: string }[] = [
+  {
+    status: "pending",
+    title: "Nuevos",
+    tab: "Nuevos",
+    empty: "Cuando entre un pedido lo vas a ver acá (y vas a escuchar un aviso).",
+  },
+  { status: "preparing", title: "En preparación", tab: "Preparando", empty: "Nada en la cocina por ahora." },
+  { status: "ready", title: "Listos / en camino", tab: "Listos", empty: "Ningún pedido esperando." },
 ];
+
+/** El contador de "Nuevos" se destaca solo si hay pedidos esperando. */
+const countClass = (status: OrderStatus, count: number) =>
+  status === "pending" && count > 0 ? "adm-count adm-count--alert" : "adm-count";
 
 export default function OrdersBoard() {
   const business = useStore();
@@ -49,7 +59,7 @@ export default function OrdersBoard() {
   ];
 
   return (
-    <div className="adm-page">
+    <div className="adm-page adm-page--wide">
       <header className="adm-page-head">
         <div>
           <h1 className="adm-title">Pedidos</h1>
@@ -87,8 +97,8 @@ export default function OrdersBoard() {
               className={`adm-board-tab is-${column.status}${tab === column.status ? " is-active" : ""}`}
               onClick={() => setTab(column.status)}
             >
-              {column.title}
-              <span className="adm-count">{count}</span>
+              {column.tab}
+              <span className={countClass(column.status, count)}>{count}</span>
             </button>
           );
         })}
@@ -107,7 +117,7 @@ export default function OrdersBoard() {
             >
               <h2 className="adm-column-title">
                 {column.title}
-                <span className="adm-count">{columnOrders.length}</span>
+                <span className={countClass(column.status, columnOrders.length)}>{columnOrders.length}</span>
               </h2>
               {columnOrders.length === 0 ? (
                 <p className="adm-empty">

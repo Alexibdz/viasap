@@ -128,7 +128,8 @@ h3 {
    ========================================================================== */
 .btn-main,
 .btn-whatsapp,
-.btn-ghost {
+.btn-ghost,
+.btn-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -183,14 +184,29 @@ h3 {
   color: var(--ink);
 }
 
+.btn-danger {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #a52f23;
+  color: #fff;
+}
+
 .btn-main:active,
 .btn-whatsapp:active,
-.btn-ghost:active {
+.btn-ghost:active,
+.btn-danger:active {
   transform: scale(0.98);
 }
 
 .btn-main:disabled,
-.btn-whatsapp:disabled {
+.btn-whatsapp:disabled,
+.btn-danger:disabled {
   opacity: 0.5;
 }
 
@@ -244,6 +260,11 @@ h3 {
 
 .text-btn:disabled {
   opacity: 0.5;
+}
+
+.text-btn--danger,
+.text-btn--danger:hover {
+  color: var(--danger);
 }
 
 .tags {
@@ -2724,6 +2745,108 @@ textarea.input {
   margin: 18px 0 10px;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.sent-check--muted {
+  background: var(--paper-deep);
+  box-shadow: none;
+  color: var(--ink-2);
+}
+
+/* Estado que informa el local, se actualiza solo. */
+.sent-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--warn-wash);
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  line-height: 1.35;
+  text-align: left;
+  animation: rise 0.3s var(--ease) both;
+}
+
+.sent-status strong {
+  display: block;
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.sent-status > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--warn);
+}
+
+.sent-status-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+.sent-status.is-preparing,
+.sent-status.is-ready,
+.sent-status.is-delivered {
+  background: var(--ok-wash);
+}
+
+.sent-status.is-preparing .sent-status-dot,
+.sent-status.is-ready .sent-status-dot {
+  animation: pulse 2s infinite;
+}
+
+.sent-status.is-cancelled {
+  background: var(--danger-wash);
+}
+
+.sent-status.is-cancelled .sent-status-dot {
+  background: var(--danger);
+}
+
+.sent-mistake {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.sent-cancel {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 340px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r);
+  background: var(--card);
+  animation: rise 0.3s var(--ease) both;
+}
+
+.sent-cancel p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.sent-cancel strong {
+  color: var(--ink);
+}
+
+.sent-cancel-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sent-back {
+  margin-top: 18px;
 }
 
 /* Pedido vacío */

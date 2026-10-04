@@ -5,7 +5,7 @@ import Modal from "react-bootstrap/Modal";
 import { PlusLg, Trash3 } from "react-bootstrap-icons";
 import { deleteCategory, saveCategory } from "@/app/admin/actions";
 import { useToast } from "@/components/store/ToastProvider";
-import type { CategoryDraft, FieldErrors } from "@/lib/admin-forms";
+import { withoutErrors, type CategoryDraft, type FieldErrors } from "@/lib/admin-forms";
 import ImageField from "./ImageField";
 import { Field } from "./ui";
 
@@ -16,8 +16,15 @@ function CategoryForm({ initial, onDone }: { initial: CategoryDraft; onDone: () 
   const [saving, setSaving] = useState(false);
   const isNew = !initial.id;
 
-  const setGroup = (index: number, name: string) =>
+  // Al editar un campo se borra su error (agregar o quitar grupos borra los de todos).
+  const update = (patch: Partial<CategoryDraft>) => {
+    setDraft((d) => ({ ...d, ...patch }));
+    setErrors((current) => withoutErrors(current, Object.keys(patch)));
+  };
+  const setGroup = (index: number, name: string) => {
     setDraft((d) => ({ ...d, groups: d.groups.map((g, i) => (i === index ? { ...g, name } : g)) }));
+    setErrors((current) => withoutErrors(current, [`groups.${index}.name`]));
+  };
 
   async function save() {
     setSaving(true);
@@ -58,11 +65,11 @@ function CategoryForm({ initial, onDone }: { initial: CategoryDraft; onDone: () 
             value={draft.name}
             maxLength={40}
             placeholder="Ej: Empanadas"
-            onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+            onChange={(e) => update({ name: e.target.value })}
           />
         </Field>
         <Field label="Foto de la categoría" hint="Se usa en el buscador y al compartir.">
-          <ImageField value={draft.imageUrl} onChange={(imageUrl) => setDraft((d) => ({ ...d, imageUrl }))} shape="wide" />
+          <ImageField value={draft.imageUrl} onChange={(imageUrl) => update({ imageUrl })} shape="wide" />
         </Field>
         <Field
           label="Grupos"
@@ -75,6 +82,7 @@ function CategoryForm({ initial, onDone }: { initial: CategoryDraft; onDone: () 
                 <input
                   className="adm-input"
                   aria-label={`Grupo ${index + 1}`}
+                  placeholder={draft.groups.length === 1 ? "Opcional" : "Ej: De pollo"}
                   value={group.name}
                   maxLength={40}
                   onChange={(e) => setGroup(index, e.target.value)}
@@ -84,7 +92,7 @@ function CategoryForm({ initial, onDone }: { initial: CategoryDraft; onDone: () 
                   className="adm-icon-btn"
                   aria-label="Quitar grupo"
                   disabled={draft.groups.length === 1}
-                  onClick={() => setDraft((d) => ({ ...d, groups: d.groups.filter((_, i) => i !== index) }))}
+                  onClick={() => update({ groups: draft.groups.filter((_, i) => i !== index) })}
                 >
                   <Trash3 />
                 </button>
@@ -94,7 +102,7 @@ function CategoryForm({ initial, onDone }: { initial: CategoryDraft; onDone: () 
             <button
               type="button"
               className="adm-btn adm-btn--dashed"
-              onClick={() => setDraft((d) => ({ ...d, groups: [...d.groups, { id: null, name: "" }] }))}
+              onClick={() => update({ groups: [...draft.groups, { id: null, name: "" }] })}
             >
               <PlusLg aria-hidden /> Agregar grupo
             </button>
