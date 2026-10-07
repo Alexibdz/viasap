@@ -1,70 +1,9 @@
 import type { OptionGroup, Product, StoreSeed } from "@/lib/types";
 import { slugify } from "@/lib/validation";
 
-// Rotisería Alexis: tienda de ejemplo con varios catálogos (pizzas, hamburguesas,
-// torpedos, minutas, empanadas y pollo). Los pedidos llegan a su WhatsApp real:
+// Rotisería Alexis: tienda de ejemplo con varios catálogos (parrilla, pizzas,
+// torpedos, minutas, pastas, empanadas…). Los pedidos llegan a su WhatsApp real:
 // para probar sin molestar, cambiá `whatsapp` por tu número.
-
-const burgerOptions: OptionGroup[] = [
-  {
-    id: "extras",
-    name: "Extras",
-    min: 0,
-    options: [
-      { id: "pepinillos", name: "Pepinillos", price: 500 },
-      { id: "cheddar", name: "Extra cheddar", price: 800, maxQty: 3 },
-      { id: "bacon", name: "Extra bacon", price: 1200, maxQty: 3 },
-      { id: "huevo", name: "Huevo frito", price: 700 },
-    ],
-  },
-  {
-    id: "papas",
-    name: "Mejorá tus papas",
-    min: 0,
-    max: 1,
-    options: [
-      { id: "cheddar", name: "Papas con cheddar", price: 4000 },
-      { id: "casa", name: "Papas de la casa", price: 4500 },
-    ],
-  },
-  {
-    id: "sin",
-    name: "Sacale ingredientes",
-    min: 0,
-    options: [
-      { id: "cebolla", name: "Sin cebolla", price: 0 },
-      { id: "tomate", name: "Sin tomate", price: 0 },
-      { id: "lechuga", name: "Sin lechuga", price: 0 },
-    ],
-  },
-];
-
-const sauces: OptionGroup = {
-  id: "salsas",
-  name: "Salsas",
-  min: 1,
-  max: 2,
-  options: [
-    { id: "barbacoa", name: "Barbacoa", price: 0 },
-    { id: "ketchup", name: "Ketchup", price: 0 },
-    { id: "mostaza-miel", name: "Mostaza y miel", price: 0 },
-    { id: "alioli", name: "Alioli", price: 0 },
-    { id: "cheddar", name: "Cheddar", price: 600 },
-  ],
-};
-
-const sideIncluded: OptionGroup = {
-  id: "guarnicion",
-  name: "Guarnición",
-  min: 1,
-  max: 1,
-  options: [
-    { id: "papas", name: "Papas fritas", price: 0 },
-    { id: "pure", name: "Puré de papas", price: 0 },
-    { id: "ensalada", name: "Ensalada mixta", price: 0 },
-    { id: "sin", name: "Sin guarnición", price: 0 },
-  ],
-};
 
 const EMPANADA_FLAVORS = ["Jamón y queso", "Árabes", "Carne dulce", "Carne salada", "Caprese", "Verdura", "Pollo", "Cebolla"];
 
@@ -134,27 +73,14 @@ function pizzaPromo(id: string, name: string, price: number): Product {
   return { id, name, price, isOffer: true };
 }
 
-function burger(id: string, name: string, description: string, imageUrl: string, prices: number[]): Product {
-  const sizes = ["Simple", "Doble", "Triple"];
-  return {
-    id,
-    name,
-    description,
-    imageUrl,
-    variants: prices.map((price, i) => ({ id: sizes[i].toLowerCase(), name: sizes[i], price })),
-    optionGroups: burgerOptions,
-  };
-}
-
 export const rotiseriaAlexis: StoreSeed = {
   business: {
     id: "biz_rotiseria_alexis",
     slug: "rotiseria-alexis",
     name: "Rotisería Alexis",
-    description: "Parrilla, pizzas, hamburguesas, torpedos, milanesas, empanadas XXL, pastas y pollo al spiedo.",
+    description: "Parrilla, pizzas, hamburguesas, torpedos, milanesas, empanadas XXL y pastas.",
     highlight: "Todo se elabora en el momento: el que sabe comer, sabe esperar.",
     logoUrl: "/demo/logos/rotiseria-alexis.png",
-    coverUrl: "/demo/hamburguesa-combo.jpg",
     whatsapp: "5493436617446",
     address: {
       street: "Sarmiento 450",
@@ -222,24 +148,11 @@ export const rotiseriaAlexis: StoreSeed = {
       emoji: "🔥",
       name: "Ofertas",
       kind: "offers",
-      imageUrl: "/demo/hamburguesa-combo.jpg",
       subcategories: [
         {
           id: "ofertas",
           name: "Ofertas",
           products: [
-            {
-              id: "combo-pareja",
-              name: "Combo pareja",
-              description: "Para dos, con las burgers dobles.",
-              imageUrl: "/demo/hamburguesa-combo.jpg",
-              price: 22900,
-              featured: true,
-              bundle: [
-                { productId: "classic", variantId: "doble", qty: 2 },
-                { productId: "papas-fritas", qty: 1 },
-              ],
-            },
             {
               id: "pizza-y-empanadas",
               name: "Pizza + media docena",
@@ -250,17 +163,6 @@ export const rotiseriaAlexis: StoreSeed = {
                 { productId: "media-docena", qty: 1 },
               ],
               optionGroups: [{ ...empanadaFlavors(6), name: "Gustos de las empanadas" }],
-            },
-            {
-              id: "pollo-para-compartir",
-              name: "Pollo para compartir",
-              imageUrl: "/demo/pollo-spiedo.jpg",
-              price: 18500,
-              featured: true,
-              bundle: [
-                { productId: "pollo-spiedo", variantId: "entero", qty: 1 },
-                { productId: "papas-fritas", qty: 1 },
-              ],
             },
           ],
         },
@@ -304,7 +206,6 @@ export const rotiseriaAlexis: StoreSeed = {
       id: "pizzas",
       emoji: "🍕",
       name: "Pizzas",
-      imageUrl: "/demo/pizza-muzzarella.jpg",
       subcategories: [
         {
           id: "promos",
@@ -373,11 +274,10 @@ export const rotiseriaAlexis: StoreSeed = {
       id: "hamburguesas",
       emoji: "🍔",
       name: "Hamburguesas",
-      imageUrl: "/demo/hamburguesa-combo.jpg",
       subcategories: [
         {
           id: "con-papas",
-          name: "XXL con papas",
+          name: "Hamburguesas",
           products: [
             {
               id: "hamburguesa-con-papas",
@@ -387,61 +287,6 @@ export const rotiseriaAlexis: StoreSeed = {
                 { id: "dos", name: "2 hamburguesas", price: 13000 },
               ],
             },
-          ],
-        },
-        {
-          id: "de-la-casa",
-          name: "Smash de la casa",
-          products: [
-            burger(
-              "bacon-jam",
-              "Bacon Jam",
-              "Medallón de 120 g, cheddar, bacon jam casero y cebolla crispy.",
-              "/demo/hamburguesa-bacon.jpg",
-              [9000, 11500, 14500],
-            ),
-            burger(
-              "classic",
-              "Classic",
-              "Medallón, cheddar, lechuga, tomate, cebolla y salsa de la casa.",
-              "/demo/hamburguesa-clasica.jpg",
-              [8000, 10000, 13000],
-            ),
-            burger(
-              "cuarto-de-libra",
-              "Cuarto de libra",
-              "Medallón, doble cheddar, cebolla, pepinillos, ketchup y mostaza.",
-              "/demo/hamburguesa-cuarto.jpg",
-              [8500, 10500, 13500],
-            ),
-            burger(
-              "deluxe",
-              "Deluxe",
-              "Medallón, cheddar, panceta, lechuga, tomate, cebolla morada y mayo de ajo.",
-              "/demo/hamburguesa-deluxe.jpg",
-              [9500, 11500, 14500],
-            ),
-            burger(
-              "de-la-casa",
-              "De la casa",
-              "Medallón, provoleta, cebolla caramelizada, rúcula y salsa criolla.",
-              "/demo/hamburguesa-casa.jpg",
-              [9500, 12000, 15000],
-            ),
-            burger(
-              "smash",
-              "Smash",
-              "Medallones smash bien dorados, cheddar, pepinillos y salsa smash.",
-              "/demo/hamburguesa-smash.jpg",
-              [9000, 11000, 13500],
-            ),
-            burger(
-              "crispy",
-              "Crispy",
-              "Pollo crispy, cheddar, lechuga, tomate y mayo de lima.",
-              "/demo/hamburguesa-crispy.jpg",
-              [10000, 13000],
-            ),
           ],
         },
       ],
@@ -653,7 +498,6 @@ export const rotiseriaAlexis: StoreSeed = {
       id: "empanadas",
       emoji: "🥟",
       name: "Empanadas",
-      imageUrl: "/demo/empanadas.jpg",
       subcategories: [
         {
           id: "xxl",
@@ -692,87 +536,6 @@ export const rotiseriaAlexis: StoreSeed = {
       ],
     },
     {
-      id: "pollo",
-      emoji: "🍗",
-      name: "Pollo",
-      imageUrl: "/demo/pollo-entero.jpg",
-      subcategories: [
-        {
-          id: "al-spiedo",
-          name: "Al spiedo",
-          products: [
-            {
-              id: "pollo-spiedo",
-              name: "Pollo al spiedo",
-              description: "Dorado a la leña, con chimichurri de la casa.",
-              imageUrl: "/demo/pollo-spiedo.jpg",
-              variants: [
-                { id: "entero", name: "Entero", price: 14000 },
-                { id: "medio", name: "Medio", price: 7500 },
-              ],
-              optionGroups: [
-                {
-                  id: "guarnicion",
-                  name: "Sumale guarnición",
-                  min: 0,
-                  options: [
-                    { id: "papas", name: "Papas fritas", price: 3500, maxQty: 3 },
-                    { id: "pure", name: "Puré de papas", price: 3000, maxQty: 3 },
-                    { id: "ensalada", name: "Ensalada mixta", price: 2800, maxQty: 3 },
-                  ],
-                },
-              ],
-            },
-            {
-              id: "suprema",
-              name: "Suprema grillada",
-              description: "Pechuga a la plancha con limón y hierbas. Incluye guarnición.",
-              imageUrl: "/demo/suprema-grillada.jpg",
-              price: 8500,
-              optionGroups: [sideIncluded],
-            },
-          ],
-        },
-        {
-          id: "crispy",
-          name: "Crispy",
-          products: [
-            {
-              id: "nuggets",
-              name: "Nuggets",
-              description: "Nuggets de pollo caseros con la salsa que elijas.",
-              imageUrl: "/demo/bocados-pollo.jpg",
-              variants: [
-                { id: "x6", name: "x6", price: 5000 },
-                { id: "x10", name: "x10", price: 7500 },
-                { id: "x20", name: "x20", price: 13500 },
-              ],
-              optionGroups: [sauces],
-            },
-            {
-              id: "tiras",
-              name: "Tiras de pollo",
-              description: "Tiras de pechuga rebozadas en panko.",
-              imageUrl: "/demo/tiras-pollo.jpg",
-              variants: [
-                { id: "x4", name: "x4", price: 6000 },
-                { id: "x8", name: "x8", price: 10500 },
-              ],
-              optionGroups: [sauces],
-            },
-            {
-              id: "patitas",
-              name: "Patitas crispy x4",
-              description: "Patitas de pollo crocantes.",
-              imageUrl: "/demo/pollo-crispy.jpg",
-              price: 7000,
-              optionGroups: [sauces],
-            },
-          ],
-        },
-      ],
-    },
-    {
       id: "rabas",
       emoji: "🦑",
       name: "Rabas",
@@ -794,32 +557,14 @@ export const rotiseriaAlexis: StoreSeed = {
     {
       id: "papas",
       emoji: "🍟",
-      name: "Papas y guarniciones",
-      imageUrl: "/demo/papas-cono.jpg",
+      name: "Papas",
       subcategories: [
         {
           id: "papas",
-          name: "Papas y guarniciones",
+          name: "Papas",
           products: [
-            { id: "papas-fritas", name: "Papas fritas grandes", imageUrl: "/demo/papas-fritas.jpg", price: 6000 },
+            { id: "papas-fritas", name: "Papas fritas grandes", price: 6000 },
             { id: "papas-cheddar", name: "Papas con cheddar", price: 9000 },
-            {
-              id: "papas-casa",
-              name: "Papas de la casa",
-              description: "Con ajo, perejil y parmesano.",
-              imageUrl: "/demo/papas-casa.jpg",
-              variants: [
-                { id: "chica", name: "Chica", price: 4500 },
-                { id: "grande", name: "Grande", price: 6500 },
-              ],
-            },
-            {
-              id: "ensalada-mixta",
-              name: "Ensalada mixta",
-              description: "Lechuga, tomate y cebolla.",
-              imageUrl: "/demo/ensalada.jpg",
-              price: 2800,
-            },
           ],
         },
       ],
@@ -895,7 +640,6 @@ export const rotiseriaAlexis: StoreSeed = {
       id: "postres",
       emoji: "🍮",
       name: "Postres",
-      imageUrl: "/demo/postre.jpg",
       subcategories: [
         {
           id: "postres",
@@ -931,13 +675,6 @@ export const rotiseriaAlexis: StoreSeed = {
                   ),
                 },
               ],
-            },
-            {
-              id: "postre-del-dia",
-              name: "Postre del día",
-              description: "Preguntanos por WhatsApp cuál es el de hoy.",
-              imageUrl: "/demo/postre.jpg",
-              price: 3500,
             },
           ],
         },

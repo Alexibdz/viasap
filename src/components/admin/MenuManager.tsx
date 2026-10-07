@@ -40,6 +40,7 @@ const NEW_CATEGORY: CategoryDraft = {
   emoji: "",
   offers: false,
   hideNotes: false,
+  expanded: false,
   groups: [{ id: null, name: "" }],
 };
 
@@ -182,8 +183,8 @@ export default function MenuManager({ menu }: { menu: Category[] }) {
                               </small>
                             </span>
                           </Link>
-                          {/* Solo las ofertas se destacan (arriba del menú, en "Ofertas destacadas"). */}
-                          {isOfferProduct(product, category) ? (
+                          {/* Se destacan las ofertas de las categorías comunes (las de ofertas ya van en el carrusel). */}
+                          {isOfferProduct(product, category) && category.kind !== "offers" ? (
                             <button
                               type="button"
                               className={`adm-star${product.featured ? " is-on" : ""}`}

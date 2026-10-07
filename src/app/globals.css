@@ -563,33 +563,18 @@ h3 {
   font-family: var(--font-hero-text), var(--bs-body-font-family);
 }
 
-.hero-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px 0;
-}
-
+/* Compartir: al final del nombre, en el mismo renglón que la última palabra. */
 .hero-share {
-  display: grid;
-  flex: none;
+  display: inline-grid;
   place-items: center;
   width: 44px;
   height: 44px;
+  margin-left: 8px;
   border: 2px solid var(--hero-ink);
   border-radius: 50%;
   background: transparent;
   color: var(--hero-ink);
-}
-
-/* Buscar y compartir van juntos a la derecha. */
-.hero-search {
-  margin-left: auto;
-}
-
-.hero-search + .hero-share {
-  margin-left: -4px;
+  vertical-align: bottom;
 }
 
 .hero-share svg {
@@ -609,19 +594,26 @@ h3 {
   grid-template-columns: minmax(0, 1fr) 128px;
   gap: 14px;
   align-items: end;
-  padding: 16px 18px 0;
+  padding: 18px 18px 0;
 }
 
-/* El título se achica según su renglón más largo (--hero-chars) para entrar siempre. */
+/* El título se achica según su renglón más largo (--hero-chars) y según el último más el botón
+   de compartir (--hero-last + 52 px), para entrar siempre. */
 .hero-title-box {
   container-type: inline-size;
   min-width: 0;
+  line-height: 0.9;
 }
 
 .hero-title {
+  display: inline;
   margin: 0;
   font-family: var(--font-hero-display), Impact, "Arial Narrow", sans-serif;
-  font-size: min(var(--hero-title-max), calc((100cqi - 12px) / (var(--hero-chars) * 0.5)));
+  font-size: min(
+    var(--hero-title-max),
+    calc((100cqi - 12px) / (var(--hero-chars) * 0.5)),
+    calc((100cqi - 64px) / (var(--hero-last) * 0.5))
+  );
   font-weight: 400;
   letter-spacing: 0;
   line-height: 0.9;
@@ -849,8 +841,8 @@ button.hero-tag:hover {
   font-weight: 800;
 }
 
-/* Categorías desplegables: la barra abre y cierra los productos y queda fija arriba
-   mientras se recorre una categoría abierta. */
+/* Categorías desplegables: una tarjeta por categoría que se abre hacia adentro. La barra
+   abre y cierra los productos y queda fija arriba mientras se recorre una abierta. */
 .menu-categories {
   display: grid;
   gap: 10px;
@@ -858,7 +850,15 @@ button.hero-tag:hover {
 }
 
 .menu-category {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--card);
   scroll-margin-top: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.menu-category[open] {
+  box-shadow: var(--shadow-1);
 }
 
 .menu-category-head {
@@ -870,20 +870,14 @@ button.hero-tag:hover {
   gap: 12px;
   min-height: 66px;
   padding: 10px 16px 10px 10px;
-  border: 1px solid var(--line);
   border-radius: var(--r);
   background: var(--card);
   cursor: pointer;
   list-style: none;
-  transition: box-shadow 0.2s;
 }
 
 .menu-category-head::-webkit-details-marker {
   display: none;
-}
-
-.menu-category-head:hover {
-  border-color: var(--brand-line);
 }
 
 .menu-category-head:focus-visible {
@@ -892,7 +886,8 @@ button.hero-tag:hover {
 }
 
 .menu-category[open] > .menu-category-head {
-  box-shadow: var(--shadow-1);
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--r) var(--r) 0 0;
 }
 
 .menu-category-emoji {
@@ -942,7 +937,43 @@ button.hero-tag:hover {
 }
 
 .menu-category-body {
-  padding: 12px 0 14px;
+  padding: 0 14px 6px;
+}
+
+/* Adentro de la categoría los productos van en lista, separados por una línea. */
+.menu-category .product-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.menu-category .product-card + .product-card {
+  border-top: 1px solid var(--line);
+}
+
+.menu-category .product-card-link {
+  padding: 14px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.menu-category .product-card-link:hover {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.menu-category .card-action {
+  right: 6px;
+  bottom: 20px;
+}
+
+.menu-category .menu-group-title {
+  margin: 16px 0 2px;
+}
+
+.menu-category .menu-group + .menu-group {
+  margin-top: 6px;
+  border-top: 1px dashed var(--line-strong);
 }
 
 .menu-group + .menu-group {
@@ -1203,7 +1234,7 @@ button.hero-tag:hover {
   transform: scale(1.05);
 }
 
-/* Destacado sin foto: la inicial en grande, como en el carrito y el buscador. */
+/* Destacado sin foto: el emoji de la categoría (o la inicial) en grande. */
 .featured-initial {
   font-size: 3.6rem;
 }
@@ -1491,163 +1522,7 @@ button.hero-tag:hover {
   font-size: 0.88rem;
 }
 
-/* Buscador */
-.search-modal .modal-content {
-  border: 0;
-  background: var(--paper);
-}
-
-.search-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border-bottom: 1px solid var(--line);
-  background: var(--paper);
-}
-
-.search-field {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  padding: 0 12px;
-  border: 1.5px solid var(--line);
-  border-radius: 14px;
-  background: var(--card);
-  color: var(--muted);
-}
-
-.search-field:focus-within {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 4px var(--brand-wash);
-}
-
-.search-field input {
-  flex: 1;
-  min-width: 0;
-  padding: 12px 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: 16px;
-}
-
-.search-field input::-webkit-search-cancel-button {
-  display: none;
-}
-
-.search-field button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--paper-deep);
-  color: var(--ink-2);
-}
-
-.search-cancel {
-  padding: 8px 4px;
-  border: 0;
-  background: none;
-  color: var(--brand);
-  font-weight: 800;
-}
-
-.search-body {
-  flex: 1;
-  padding: 16px;
-  overflow-y: auto;
-}
-
-.search-results {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.search-result {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px;
-  border-radius: var(--r-sm);
-  background: var(--card);
-  color: inherit;
-  text-decoration: none;
-}
-
-.search-result:hover {
-  background: var(--brand-wash);
-  color: inherit;
-}
-
-.search-result.is-soldout {
-  opacity: 0.55;
-}
-
-.search-result-media {
-  position: relative;
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: var(--brand-wash);
-  color: var(--brand);
-}
-
-.search-result-media img {
-  object-fit: cover;
-}
-
-.search-result-media .product-card-initial {
-  font-size: 1.4rem;
-}
-
-.search-result-text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.search-result-name {
-  font-weight: 800;
-}
-
-.search-result-name mark {
-  padding: 0 1px;
-  border-radius: 3px;
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.search-result-text small {
-  color: var(--muted);
-}
-
-.search-result-price {
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.search-result-price small {
-  color: var(--muted);
-  font-weight: 600;
-}
-
+/* Menú vacío */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -1656,20 +1531,6 @@ button.hero-tag:hover {
   padding: 40px 16px;
   color: var(--muted);
   text-align: center;
-}
-
-@media (min-width: 768px) {
-  .search-modal .modal-dialog.modal-fullscreen {
-    width: auto;
-    max-width: 640px;
-    height: calc(100% - 80px);
-    margin: 40px auto;
-  }
-
-  .search-modal .modal-fullscreen .modal-content {
-    overflow: hidden;
-    border-radius: var(--r-lg);
-  }
 }
 
 /* ==========================================================================
@@ -3202,6 +3063,15 @@ textarea.input {
   object-fit: cover;
 }
 
+.store-tile-cover--logo {
+  background: #2a211a;
+}
+
+.store-tile-cover--logo img {
+  padding: 12px;
+  object-fit: contain;
+}
+
 .store-tile-body {
   position: relative;
   display: flex;
@@ -3216,7 +3086,7 @@ textarea.input {
   left: 16px;
   border: 3px solid var(--card);
   border-radius: 16px;
-  background: var(--card);
+  background: #2a211a;
 }
 
 .store-tile-name {

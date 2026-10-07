@@ -206,8 +206,8 @@ export default function ProductEditor({
                 label="Es una oferta o promo"
                 description={
                   category?.offers
-                    ? "Está en la categoría de ofertas."
-                    : "Puede estar en cualquier categoría: se puede destacar arriba del menú y armar con productos."
+                    ? "Está en la categoría de ofertas: aparece en el carrusel de arriba."
+                    : "Puede estar en cualquier categoría: se puede destacar en el carrusel de arriba y armar con productos."
                 }
               />
             </div>
@@ -557,12 +557,13 @@ export default function ProductEditor({
                 label="Disponible"
                 description="Si lo apagás, aparece como agotado y no se puede pedir."
               />
-              {isOffer && (
+              {/* Las de la categoría de ofertas ya están siempre en el carrusel. */}
+              {isOffer && !category?.offers && (
                 <Switch
                   checked={draft.featured}
                   onChange={(featured) => update({ featured })}
                   label="Destacada"
-                  description='Aparece arriba de todo, en "Ofertas destacadas".'
+                  description='También aparece arriba, en el carrusel de "Ofertas destacadas".'
                 />
               )}
             </div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { heroTitleLines, longestLine } from "./hero";
+import { heroTitleLines, lastLineWidth, longestLine } from "./hero";
 
 const shown = (name: string) => heroTitleLines(name).map((line) => (line.mark ? `[${line.text}]` : line.text));
 
@@ -21,5 +21,10 @@ describe("título de la portada", () => {
     expect(longestLine(heroTitleLines("Rotisería La Esquina"))).toBe(8.2);
     expect(longestLine(heroTitleLines("Mmm Wow"))).toBe(4.2);
     expect(longestLine([])).toBe(1);
+  });
+
+  it("mide el último renglón, que comparte lugar con el botón de compartir", () => {
+    expect(lastLineWidth(heroTitleLines("Rotisería Alexis"))).toBe(5.2);
+    expect(lastLineWidth([])).toBe(1);
   });
 });

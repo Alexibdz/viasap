@@ -42,8 +42,14 @@ export default async function Home() {
         <div className="store-tiles">
           {businesses.map((business) => (
             <Link key={business.slug} href={`/${business.slug}`} className="store-tile">
-              <span className="store-tile-cover">
-                {business.coverUrl && <Image src={business.coverUrl} alt="" fill sizes="(max-width: 700px) 100vw, 360px" />}
+              {/* Sin foto para compartir, el logo entero sobre fondo oscuro (como en la portada de la tienda). */}
+              <span className={`store-tile-cover${business.coverUrl ? "" : " store-tile-cover--logo"}`}>
+                <Image
+                  src={business.coverUrl ?? business.logoUrl}
+                  alt=""
+                  fill
+                  sizes="(max-width: 700px) 100vw, 360px"
+                />
               </span>
               <span className="store-tile-body">
                 <Image src={business.logoUrl} alt="" width={52} height={52} className="store-tile-logo" />

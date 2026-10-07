@@ -318,6 +318,8 @@ export interface CategoryDraft {
   offers: boolean;
   /** Sin el campo "¿Alguna aclaración?" (bebidas). */
   hideNotes: boolean;
+  /** Desplegada al entrar a la tienda. */
+  expanded: boolean;
   groups: { id: string | null; name: string }[];
 }
 
@@ -361,12 +363,13 @@ export function applyCategory(menu: Category[], draft: unknown): FormResult<stri
   for (const removed of existing?.subcategories.filter((s) => !taken.has(s.id)) ?? []) {
     if (removed.products.length) errors.groups = `"${removed.name}" tiene productos: movelos antes de borrar el grupo.`;
   }
-  const flags: Pick<Category, "emoji" | "kind" | "hideNotes"> = {};
+  const flags: Pick<Category, "emoji" | "kind" | "hideNotes" | "expanded"> = {};
   const emoji = cleanEmoji(field(draft, "emoji"));
   if (emoji === null) errors.emoji = "Poné un emoji (ej: 🍕) o dejalo vacío.";
   else if (emoji) flags.emoji = emoji;
   if (field(draft, "offers") === true) flags.kind = "offers";
   if (field(draft, "hideNotes") === true) flags.hideNotes = true;
+  if (field(draft, "expanded") === true) flags.expanded = true;
 
   if (Object.keys(errors).length) return { ok: false, errors };
 
@@ -377,6 +380,7 @@ export function applyCategory(menu: Category[], draft: unknown): FormResult<stri
     delete existing.emoji;
     delete existing.kind;
     delete existing.hideNotes;
+    delete existing.expanded;
     Object.assign(existing, flags);
     existing.subcategories = groups;
     return { ok: true, value: existing.id };
@@ -647,6 +651,7 @@ export function toCategoryDraft(category: Category): CategoryDraft {
     emoji: category.emoji ?? "",
     offers: category.kind === "offers",
     hideNotes: Boolean(category.hideNotes),
+    expanded: Boolean(category.expanded),
     groups: category.subcategories.map((s) => ({ id: s.id, name: s.name })),
   };
 }

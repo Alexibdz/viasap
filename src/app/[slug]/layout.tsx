@@ -6,7 +6,6 @@ import { StoreProvider } from "@/components/store/StoreProvider";
 import { StoreUiProvider } from "@/components/store/StoreUi";
 import { ToastProvider } from "@/components/store/ToastProvider";
 import { getBusiness, getMenu, listBusinesses } from "@/lib/data";
-import { buildSearchIndex, categoryLabel } from "@/lib/menu";
 import { NavigationTracker } from "@/lib/navigation";
 import { themeCss } from "@/lib/theme";
 
@@ -33,7 +32,8 @@ export async function generateMetadata({ params }: LayoutProps<"/[slug]">): Prom
       description,
       type: "website",
       locale: "es_AR",
-      images: business.coverUrl ? [business.coverUrl] : undefined,
+      // Sin foto para compartir, la vista previa muestra el logo.
+      images: [business.coverUrl ?? business.logoUrl],
     },
   };
 }
@@ -53,10 +53,7 @@ export default async function StoreLayout({ children, modal, params }: LayoutPro
     <StoreProvider business={business}>
       <style>{themeCss(business.theme)}</style>
       <ToastProvider>
-        <StoreUiProvider
-          searchIndex={buildSearchIndex(menu)}
-          categories={menu.map((category) => ({ id: category.id, name: categoryLabel(category) }))}
-        >
+        <StoreUiProvider>
           <NavigationTracker />
           <div className={`${heroDisplay.variable} ${heroText.variable}`}>
             {children}

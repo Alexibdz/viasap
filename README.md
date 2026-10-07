@@ -28,26 +28,28 @@ así que en la red local no anda: usá el buscador de direcciones.
 
 ### Probar el envío por WhatsApp
 
-La tienda de ejemplo manda los pedidos al WhatsApp real de Rotisería Alexis (343 661-7446). Para probar sin
-molestar, poné el tuyo en el campo `whatsapp` de `src/data/stores/rotiseria-alexis.ts`, en formato internacional y
-solo dígitos: `549` + característica sin el 0 + número sin el 15 (por ejemplo `5493434123456`).
+Las dos tiendas de ejemplo mandan los pedidos al WhatsApp real de Rotisería Alexis (343 661-7446). Para probar sin
+molestar, poné el tuyo en el campo `whatsapp` de `src/data/stores/rotiseria-alexis.ts` (o `costanera-burgers.ts`), en
+formato internacional y solo dígitos: `549` + característica sin el 0 + número sin el 15 (por ejemplo `5493434123456`).
 
 ## Panel del local
 
-Entrá a `/admin` (te lleva a `/admin/ingresar`). Cuenta de prueba: `admin@rotiseriaalexis.demo`, contraseña `demo1234`.
-Cada cuenta ve solo su local.
+Entrá a `/admin` (te lleva a `/admin/ingresar`). Cuentas de prueba, con contraseña `demo1234`:
+`admin@rotiseriaalexis.demo` y `admin@costaneraburgers.demo`. Cada cuenta ve solo su local.
 
 - **Pedidos:** tablero con nuevos, en preparación y listos. Se actualiza solo cada pocos segundos y avisa
   con un sonido y en la pestaña del navegador ("(2) Pedidos nuevos"). Desde el detalle se confirma, se marca
   listo o entregado, se cancela con un motivo y se imprime la comanda; si querés, abre WhatsApp con el aviso
   para el cliente. El cliente ve el estado en la pantalla final de su pedido.
 - **Menú:** productos con presentaciones y opciones, foto opcional, agotado y orden; categorías y grupos.
-  Cada categoría lleva un emoji de decoración (🍕) y en la tienda se despliega al tocarla; las que no tienen
-  productos no se muestran. Una categoría puede ser **de ofertas**: ahí cada producto se arma con el **armador de ofertas**
-  (productos del menú, presentación y cantidad) y la tienda muestra qué incluye, el precio por separado y el ahorro.
-  Una oferta también puede estar dentro de cualquier categoría ("Es una oferta o promo", por ejemplo las promos de
-  pizzas dentro de Pizzas). Las ofertas marcadas como **destacadas** aparecen arriba del menú, en "Ofertas
-  destacadas". Un producto incluido en una oferta no se puede borrar sin sacarlo antes de la oferta.
+  Cada categoría lleva un emoji de decoración (🍕) y en la tienda se despliega al tocarla, con los productos
+  adentro; con "Desplegada al entrar" arranca abierta. Las que no tienen productos no se muestran.
+  Una categoría puede ser **de ofertas**: no se lista como categoría, sus productos van arriba en el carrusel
+  "Ofertas destacadas" y se arman con el **armador de ofertas** (productos del menú, presentación y cantidad); la
+  tienda muestra qué incluye, el precio por separado y el ahorro. Una oferta también puede estar dentro de cualquier
+  categoría ("Es una oferta o promo", por ejemplo las promos de pizzas dentro de Pizzas); si se marca como
+  **destacada**, además aparece en el carrusel. Un producto incluido en una oferta no se puede borrar sin sacarlo
+  antes de la oferta.
 - **Cupones** y **Ajustes** (datos del local, horarios, entregas, pagos y apariencia).
 - **Pausar pedidos:** el interruptor "Recibiendo pedidos" corta los pedidos por un rato, sin tocar el horario.
 
@@ -55,10 +57,12 @@ Cada cuenta ve solo su local.
 
 | Link | Qué muestra | Cupones |
 | --- | --- | --- |
-| `/rotiseria-alexis` | Rotisería Alexis: parrilla, pizzas y promos, hamburguesas, panchos, torpedos, sándwiches, minutas, pastas, empanadas XXL, pollo, rabas, bebidas y postres; ofertas y envío dentro / fuera de boulevard y zona rural. Acepta pedidos con el local cerrado. | `BIENVENIDA` (10 %), `FINDE2000` ($2.000 desde $15.000) |
+| `/rotiseria-alexis` | Rotisería Alexis: parrilla, pizzas y promos, hamburguesas, panchos, torpedos, sándwiches, minutas, pastas, empanadas XXL, rabas, bebidas y postres, todo sin fotos; ofertas y envío dentro / fuera de boulevard y zona rural. Acepta pedidos con el local cerrado. | `BIENVENIDA` (10 %), `FINDE2000` ($2.000 desde $15.000) |
+| `/costanera-burgers` | Costanera Burgers, en la costanera de Victoria: hamburguesas smash, papas y ensaladas, todo con fotos; combo destacado. | `BIENVENIDA` (10 %), `FINDE2000` ($2.000 desde $15.000) |
 
-El catálogo y los precios salen de dos listas reales que las rotiserías mandan por WhatsApp (donde un producto
-estaba en las dos, quedó el precio de Rotisería Alexis). Las bebidas no llevan "¿Alguna aclaración?": se configura
+El catálogo de Rotisería Alexis y sus precios salen de dos listas reales que las rotiserías mandan por WhatsApp (donde
+un producto estaba en las dos, quedó el precio de Rotisería Alexis). Las fotos de ejemplo están todas en Costanera
+Burgers. Las bebidas no llevan "¿Alguna aclaración?": se configura
 por categoría ("Sin aclaraciones"). La dirección y los datos bancarios son ficticios; el WhatsApp es el de la rotisería. El link viejo (`/doble-queso`)
 redirige al nuevo. Los productos nuevos no tienen foto a propósito: se prioriza la foto
 real del producto antes que una de referencia. Fotos de ejemplo: Unsplash.
@@ -89,7 +93,7 @@ src/
     api/admin/pedidos/               pedidos del local para el tablero (se consulta cada 8 s)
     api/pedidos/[code]/              estado de un pedido para la pantalla del cliente
     media/[...path]/                 fotos subidas desde el panel
-  components/store/                  tienda, producto, búsqueda, info del local
+  components/store/                  tienda, producto, horarios y envíos
   components/checkout/               pasos del pedido, mapa, ticket, pantalla final
   components/admin/                  panel (estilos en app/admin/admin.css, clases adm-*)
   lib/

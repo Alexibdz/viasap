@@ -42,7 +42,14 @@ function lineWidth(text: string): number {
   return [...text].reduce((sum, char) => sum + (WIDE.test(char) ? 1.4 : NARROW.test(char) ? 0.6 : 1), 0);
 }
 
+const round = (n: number) => Math.round(n * 10) / 10;
+
 /** Ancho del renglón más largo (en letras promedio): con eso se achica la letra para que entre. */
 export function longestLine(lines: TitleLine[]): number {
-  return Math.max(1, ...lines.map((line) => Math.round(lineWidth(line.text) * 10) / 10));
+  return Math.max(1, ...lines.map((line) => round(lineWidth(line.text))));
+}
+
+/** Ancho del último renglón: al lado va el botón de compartir, que también tiene que entrar. */
+export function lastLineWidth(lines: TitleLine[]): number {
+  return Math.max(1, round(lineWidth(lines.at(-1)?.text ?? "")));
 }

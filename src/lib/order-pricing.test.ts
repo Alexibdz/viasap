@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { costaneraBurgers } from "@/data/stores/costanera-burgers";
 import { rotiseriaAlexis } from "@/data/stores/rotiseria-alexis";
+import { findProduct } from "./menu";
 import { priceOrder, type OrderInput } from "./order-pricing";
 import type { StoreSeed } from "./types";
 
@@ -8,7 +10,9 @@ const OPEN = new Date("2026-10-07T21:00:00-03:00");
 // Lunes 5/10/2026 al mediodía: los lunes está cerrado.
 const MONDAY = new Date("2026-10-05T12:00:00-03:00");
 
-const store = rotiseriaAlexis;
+// La hamburguesería para casi todo; la rotisería para empanadas y bebidas.
+const store = costaneraBurgers;
+const alexis = rotiseriaAlexis;
 const near = { lat: store.business.address.lat + 0.005, lng: store.business.address.lng };
 // Variante del local que no toma pedidos fuera de horario ni acepta pago combinado.
 const strict: StoreSeed = {
@@ -56,7 +60,7 @@ describe("priceOrder", () => {
       name: "Cuarto de libra",
       variantName: "Doble",
       unitPrice: 10500,
-      sectionLabel: "Hamburguesas · Smash de la casa",
+      sectionLabel: "Hamburguesas",
       options: [{ name: "Papas con cheddar", price: 4000, qty: 1 }],
     });
     expect(order.totals).toEqual({ subtotal: 14500, discount: 0, shipping: 0, total: 14500 });
@@ -66,35 +70,36 @@ describe("priceOrder", () => {
   it("rechaza productos inexistentes, agotados o mal armados", () => {
     expectError(priceOrder(store, input({ lines: [{ productId: "no-existe", options: [], qty: 1 }] }), OPEN), /ya no está/);
     const soldOut = structuredClone(store);
-    soldOut.menu.find((c) => c.id === "pizzas")!.subcategories.find((s) => s.id === "pizzas")!.products[0].soldOut = true;
-    expectError(priceOrder(soldOut, input({ lines: [{ productId: "pizza-comun", options: [], qty: 1 }] }), OPEN), /agotado/);
+    findProduct(soldOut.menu, "ensalada-mixta")!.product.soldOut = true;
+    expectError(priceOrder(soldOut, input({ lines: [{ productId: "ensalada-mixta", options: [], qty: 1 }] }), OPEN), /agotado/);
     expectError(
       priceOrder(store, input({ lines: [{ productId: "cuarto-de-libra", options: [], qty: 1 }] }), OPEN),
       /presentación/,
     );
     expectError(
-      priceOrder(store, input({ lines: [{ productId: "pizza-comun", options: [], qty: 0 }] }), OPEN),
+      priceOrder(store, input({ lines: [{ productId: "ensalada-mixta", options: [], qty: 0 }] }), OPEN),
       /cantidad/,
     );
   });
 
   it("respeta mínimos y máximos de cada grupo de opciones", () => {
-    const nuggets = (options: { groupId: string; optionId: string; qty: number }[]) =>
-      input({ lines: [{ productId: "nuggets", variantId: "x6", options, qty: 1 }] });
-    expectError(priceOrder(store, nuggets([]), OPEN), /Salsas/);
+    // Asado para 2: hay que elegir entre 1 y 2 acompañamientos.
+    const asado = (options: { groupId: string; optionId: string; qty: number }[]) =>
+      input({ lines: [{ productId: "asado-2", options, qty: 1 }] });
+    expectError(priceOrder(alexis, asado([]), OPEN), /Acompañamientos/);
     expectError(
       priceOrder(
-        store,
-        nuggets([
-          { groupId: "salsas", optionId: "barbacoa", qty: 1 },
-          { groupId: "salsas", optionId: "ketchup", qty: 1 },
-          { groupId: "salsas", optionId: "alioli", qty: 1 },
+        alexis,
+        asado([
+          { groupId: "acompanamiento", optionId: "papas-fritas", qty: 1 },
+          { groupId: "acompanamiento", optionId: "ensalada", qty: 1 },
+          { groupId: "acompanamiento", optionId: "pure", qty: 1 },
         ]),
         OPEN,
       ),
-      /Salsas/,
+      /Acompañamientos/,
     );
-    expect(priceOrder(store, nuggets([{ groupId: "salsas", optionId: "cheddar", qty: 1 }]), OPEN).ok).toBe(true);
+    expect(priceOrder(alexis, asado([{ groupId: "acompanamiento", optionId: "ensalada-rusa", qty: 1 }]), OPEN).ok).toBe(true);
     // Extra cheddar admite hasta 3 por hamburguesa.
     const tooMuchCheddar = input({
       lines: [{ productId: "classic", variantId: "simple", options: [{ groupId: "extras", optionId: "cheddar", qty: 4 }], qty: 1 }],
@@ -116,7 +121,7 @@ describe("priceOrder", () => {
     expectError(priceOrder(store, delivery(), OPEN), /zona/);
     expectError(priceOrder(store, delivery("en-la-luna"), OPEN), /zona/);
     const small = input({
-      lines: [{ productId: "papas-fritas", options: [], qty: 1 }],
+      lines: [{ productId: "papas-fritas", variantId: "chica", options: [], qty: 1 }],
       fulfillment: { method: "delivery", address: "Italia 120", location: near, zoneId: "dentro-de-boulevard", buildingType: "house" },
     });
     expectError(priceOrder(store, small, OPEN), /mínimo/);
@@ -128,13 +133,13 @@ describe("priceOrder", () => {
       name: "Combo pareja",
       unitPrice: 22900,
       sectionLabel: "Ofertas",
-      includes: "2x Classic (Doble), 1x Papas fritas grandes",
+      includes: "2x Classic (Doble), 1x Papas fritas (Grande)",
     });
   });
 
   it("no guarda aclaraciones en las bebidas", () => {
     const line = (productId: string, variantId?: string) => ({ productId, variantId, options: [], qty: 1, notes: "bien fría" });
-    const result = priceOrder(store, input({ lines: [line("gaseosa-1l", "coca"), line("choripan")] }), OPEN);
+    const result = priceOrder(alexis, input({ lines: [line("gaseosa-1l", "coca"), line("choripan")] }), OPEN);
     expect(result.ok && result.order.items.map((i) => i.notes)).toEqual([undefined, "bien fría"]);
   });
 
@@ -142,7 +147,7 @@ describe("priceOrder", () => {
     const docena = (options: { groupId: string; optionId: string; qty: number }[]) =>
       input({ lines: [{ productId: "docena", options, qty: 1 }] });
     const ok = priceOrder(
-      store,
+      alexis,
       docena([
         { groupId: "gustos", optionId: "carne-salada", qty: 6 },
         { groupId: "gustos", optionId: "jamon-y-queso", qty: 6 },
@@ -150,7 +155,7 @@ describe("priceOrder", () => {
       OPEN,
     );
     expect(ok.ok && ok.order.totals.subtotal).toBe(12000);
-    expectError(priceOrder(store, docena([{ groupId: "gustos", optionId: "arabes", qty: 6 }]), OPEN), /gustos/);
+    expectError(priceOrder(alexis, docena([{ groupId: "gustos", optionId: "arabes", qty: 6 }]), OPEN), /gustos/);
   });
 
   it("aplica solo cupones válidos sin frenar el pedido", () => {
@@ -176,7 +181,7 @@ describe("priceOrder", () => {
     expectError(priceOrder(paused, input(), OPEN), /pausó/);
     expectError(priceOrder(strict, input(), MONDAY), /cerrado/);
     expect(priceOrder(strict, input(), OPEN).ok).toBe(true);
-    // Rotisería Alexis acepta pedidos fuera de horario.
+    // Costanera Burgers acepta pedidos fuera de horario.
     expect(priceOrder(store, input(), MONDAY).ok).toBe(true);
   });
 

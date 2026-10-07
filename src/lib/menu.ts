@@ -1,6 +1,5 @@
 import { productIndex, resolveOffer } from "./offers";
-import { priceFrom, showsPriceFrom } from "./pricing";
-import type { Category, OfferInfo, Product, ProductContext, SearchEntry, Subcategory } from "./types";
+import type { Category, OfferInfo, Product, ProductContext, Subcategory } from "./types";
 
 /**
  * ¿Vale la pena mostrar el nombre del grupo? No cuando la categoría tiene un solo
@@ -50,13 +49,21 @@ export interface FeaturedOffer {
   emoji?: string;
 }
 
-/** "Ofertas destacadas": las ofertas marcadas como destacadas, de cualquier categoría (sin agotadas). */
+/**
+ * Carrusel "Ofertas destacadas": todo lo de la categoría de ofertas (que no se muestra como
+ * categoría) y las ofertas destacadas de las demás categorías. Sin agotadas.
+ */
 export function featuredOffers(menu: Category[]): FeaturedOffer[] {
   return menu.flatMap((category) =>
     categoryProducts(category)
-      .filter((p) => p.featured && !p.soldOut && isOfferProduct(p, category))
+      .filter((p) => !p.soldOut && (category.kind === "offers" || (p.featured && isOfferProduct(p, category))))
       .map((product) => ({ product, emoji: category.emoji })),
   );
+}
+
+/** Las categorías que se listan abajo del carrusel: todas menos la de ofertas. */
+export function listedCategories(menu: Category[]): Category[] {
+  return menu.filter((category) => category.kind !== "offers");
 }
 
 export function findProduct(menu: Category[], productId: string): ProductContext | null {
@@ -88,28 +95,6 @@ export function menuOffers(menu: Category[]): Record<string, OfferInfo> {
     if (offer) offers[product.id] = offer;
   }
   return offers;
-}
-
-/** "🍕 Pizzas" (el emoji es decoración: no va en el mensaje de WhatsApp). */
-export function categoryLabel(category: Pick<Category, "name" | "emoji">): string {
-  return category.emoji ? `${category.emoji} ${category.name}` : category.name;
-}
-
-/** Índice liviano para el buscador (se manda al navegador). */
-export function buildSearchIndex(menu: Category[]): SearchEntry[] {
-  return menu.flatMap((category) =>
-    categoryProducts(category).map((product) => ({
-      productId: product.id,
-      name: product.name,
-      description: product.description,
-      imageUrl: product.imageUrl,
-      categoryId: category.id,
-      categoryName: category.name,
-      priceFrom: priceFrom(product),
-      hasVariants: showsPriceFrom(product),
-      soldOut: Boolean(product.soldOut),
-    })),
-  );
 }
 
 /** Se puede agregar al pedido sin abrir el detalle (no hay nada para elegir). */

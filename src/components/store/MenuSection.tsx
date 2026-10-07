@@ -18,6 +18,7 @@ export default function MenuSection({ slug, category, offers }: MenuSectionProps
   return (
     <CategoryDetails
       id={`c-${category.id}`}
+      defaultOpen={category.expanded}
       summary={
         <>
           <span className="menu-category-emoji" aria-hidden>

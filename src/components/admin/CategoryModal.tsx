@@ -96,15 +96,21 @@ function CategoryForm({ initial, onDone }: { initial: CategoryDraft; onDone: () 
             </button>
           ))}
         </div>
-        <Field label="Foto de la categoría" hint="Se usa en el buscador y al compartir.">
+        <Field label="Foto de la categoría" hint="Opcional. Se ve en la lista del menú del panel.">
           <ImageField value={draft.imageUrl} onChange={(imageUrl) => update({ imageUrl })} shape="wide" />
         </Field>
         <div className="adm-switches">
           <Switch
+            checked={draft.expanded}
+            onChange={(expanded) => update({ expanded })}
+            label="Desplegada al entrar"
+            description="La tienda la muestra abierta, con los productos a la vista. Si no, arranca cerrada."
+          />
+          <Switch
             checked={draft.offers}
             onChange={(offers) => update({ offers })}
             label="Categoría de ofertas"
-            description="Sus productos se arman con el armador de ofertas: combinás productos del menú con un precio especial."
+            description="No se muestra como categoría: sus productos van arriba, en el carrusel de ofertas, y se arman con el armador de ofertas."
           />
           <Switch
             checked={draft.hideNotes}

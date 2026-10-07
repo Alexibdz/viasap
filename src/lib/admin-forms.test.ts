@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rotiseriaAlexis } from "@/data/stores/rotiseria-alexis";
+import { costaneraBurgers } from "@/data/stores/costanera-burgers";
 import {
   applyCategory,
   buildCoupon,
@@ -21,7 +21,7 @@ import {
 import { findProduct } from "./menu";
 import type { Category } from "./types";
 
-const freshMenu = (): Category[] => structuredClone(rotiseriaAlexis.menu);
+const freshMenu = (): Category[] => structuredClone(costaneraBurgers.menu);
 
 const draft = (overrides: Partial<ProductDraft> = {}): ProductDraft => ({
   id: null,
@@ -98,7 +98,7 @@ describe("productos", () => {
     expect(promo.ok && promo.value.product).toMatchObject({ isOffer: true, featured: true });
     expect(promo.ok && promo.value.categoryId).toBe("hamburguesas");
     // Si no es oferta, lo que haya quedado en el armador no se guarda.
-    const leftover = buildProduct(draft({ bundle: [{ productId: "papas-fritas", variantId: "", qty: "1" }] }), menu);
+    const leftover = buildProduct(draft({ bundle: [{ productId: "ensalada-mixta", variantId: "", qty: "1" }] }), menu);
     expect(leftover.ok && leftover.value.product.bundle).toBeUndefined();
   });
 
@@ -131,7 +131,7 @@ describe("productos", () => {
       draft({
         id: "papas-casa",
         name: "Papas rústicas",
-        categoryId: "pollo",
+        categoryId: "postres",
         subcategoryId: NEW_GROUP,
         newGroupName: "Acompañamientos",
         hasVariants: false,
@@ -146,10 +146,9 @@ describe("productos", () => {
     placeProduct(menu, result.value);
     const moved = findProduct(menu, "papas-casa");
     expect(moved?.product).toMatchObject({ id: "papas-casa", name: "Papas rústicas", price: 5000 });
-    expect(moved?.sectionLabel).toBe("Pollo · Acompañamientos");
+    expect(moved?.sectionLabel).toBe("Postres · Acompañamientos");
     expect(menu.find((c) => c.id === "papas")?.subcategories[0].products.map((p) => p.id)).toEqual([
       "papas-fritas",
-      "papas-cheddar",
       "ensalada-mixta",
     ]);
   });
@@ -161,8 +160,7 @@ describe("productos", () => {
     updateProductFlags(menu, "classic", { soldOut: false });
     expect(findProduct(menu, "classic")?.product.soldOut).toBeUndefined();
     expect(moveProduct(menu, "classic", -1)).toBe(true);
-    const group = menu.find((c) => c.id === "hamburguesas")?.subcategories.find((s) => s.id === "de-la-casa");
-    expect(group?.products[0].id).toBe("classic");
+    expect(menu.find((c) => c.id === "hamburguesas")?.subcategories[0].products[0].id).toBe("classic");
     expect(moveProduct(menu, "classic", -1)).toBe(false);
     expect(removeProduct(menu, "classic")).toBe(true);
     expect(findProduct(menu, "classic")).toBeNull();
@@ -192,13 +190,13 @@ describe("armador de ofertas", () => {
     const result = buildProduct(
       offer([
         { productId: "smash", variantId: "doble", qty: "2" },
-        { productId: "papas-fritas", variantId: "", qty: "2" },
+        { productId: "ensalada-mixta", variantId: "", qty: "2" },
       ]),
       freshMenu(),
     );
     expect(result.ok && result.value.product.bundle).toEqual([
       { productId: "smash", variantId: "doble", qty: 2 },
-      { productId: "papas-fritas", qty: 2 },
+      { productId: "ensalada-mixta", qty: 2 },
     ]);
   });
 
@@ -207,7 +205,7 @@ describe("armador de ofertas", () => {
       offer([
         { productId: "no-existe", variantId: "", qty: "1" },
         { productId: "smash", variantId: "gigante", qty: "1" },
-        { productId: "papas-fritas", variantId: "", qty: "0" },
+        { productId: "ensalada-mixta", variantId: "", qty: "0" },
         { productId: "combo-pareja", variantId: "", qty: "1" },
       ]),
       freshMenu(),
@@ -229,7 +227,7 @@ describe("armador de ofertas", () => {
       name: "Classic",
       hasVariants: true,
       isOffer: true,
-      bundle: [{ productId: "papas-fritas", variantId: "", qty: "1" }],
+      bundle: [{ productId: "ensalada-mixta", variantId: "", qty: "1" }],
     });
     const result = buildProduct(edit, menu);
     expect(result.ok).toBe(false);
@@ -257,21 +255,22 @@ describe("categorías", () => {
     expect(created).toEqual({ ok: true, value: "helados" });
     expect(menu.at(-1)?.subcategories).toEqual([{ id: "helados", name: "Helados", products: [] }]);
 
-    const dropGroup = applyCategory(menu, { id: "pollo", name: "Pollo", imageUrl: "", groups: [{ id: null, name: "Otro" }] });
+    const dropGroup = applyCategory(menu, { id: "papas", name: "Papas", imageUrl: "", groups: [{ id: null, name: "Otro" }] });
     expect(dropGroup.ok).toBe(false);
-    expect(removeCategory(menu, "pollo").ok).toBe(false);
+    expect(removeCategory(menu, "papas").ok).toBe(false);
     expect(removeCategory(menu, "helados").ok).toBe(true);
   });
 
   it("guarda el emoji y las marcas de ofertas y sin aclaraciones, y los saca al borrarlos", () => {
     const menu = freshMenu();
     const groups = [{ id: "helados", name: "Helados" }];
-    applyCategory(menu, { id: null, name: "Helados", imageUrl: "", emoji: " 🍦 ", offers: true, hideNotes: true, groups });
-    expect(menu.at(-1)).toMatchObject({ id: "helados", emoji: "🍦", kind: "offers", hideNotes: true });
-    applyCategory(menu, { id: "helados", name: "Helados", imageUrl: "", emoji: "", offers: false, hideNotes: false, groups });
+    applyCategory(menu, { id: null, name: "Helados", imageUrl: "", emoji: " 🍦 ", offers: true, hideNotes: true, expanded: true, groups });
+    expect(menu.at(-1)).toMatchObject({ id: "helados", emoji: "🍦", kind: "offers", hideNotes: true, expanded: true });
+    applyCategory(menu, { id: "helados", name: "Helados", imageUrl: "", emoji: "", offers: false, hideNotes: false, expanded: false, groups });
     expect(menu.at(-1)).not.toHaveProperty("emoji");
     expect(menu.at(-1)).not.toHaveProperty("kind");
     expect(menu.at(-1)).not.toHaveProperty("hideNotes");
+    expect(menu.at(-1)).not.toHaveProperty("expanded");
   });
 
   it("acepta solo uno o dos emojis", () => {
@@ -370,7 +369,7 @@ describe("ajustes", () => {
   });
 
   it("valida cupones", () => {
-    const coupons = rotiseriaAlexis.coupons;
+    const coupons = costaneraBurgers.coupons;
     expect(buildCoupon({ code: "bienvenida", type: "percent", value: "10" }, coupons, null).ok).toBe(false);
     expect(buildCoupon({ code: "bienvenida", type: "percent", value: "15" }, coupons, "BIENVENIDA").ok).toBe(true);
     expect(buildCoupon({ code: "X", type: "fixed", value: "100" }, coupons, null).ok).toBe(false);

@@ -5,7 +5,7 @@ import { Fragment, type CSSProperties } from "react";
 import { useNow } from "@/lib/client-hooks";
 import { formatMoney } from "@/lib/format";
 import { googleMapsUrl } from "@/lib/geo";
-import { heroTitleLines, longestLine } from "@/lib/hero";
+import { heroTitleLines, lastLineWidth, longestLine } from "@/lib/hero";
 import { getOpenStatus, nextOpeningLabel } from "@/lib/hours";
 import { shippingFrom } from "@/lib/shipping";
 import ShareButton from "./ShareButton";
@@ -26,7 +26,7 @@ function Chevron() {
  */
 export default function StoreHero() {
   const business = useStore();
-  const { openInfo, openSearch } = useStoreUi();
+  const { openInfo } = useStoreUi();
   const now = useNow();
   // En el servidor no se sabe la hora: hasta hidratar no hay estado ni cinta.
   const status = now === null ? null : getOpenStatus(business.schedule, business.timezone, new Date(now));
@@ -59,23 +59,13 @@ export default function StoreHero() {
 
   return (
     <header className="hero" data-open={status ? String(status.open) : undefined}>
-      <div className="hero-top">
-        <button type="button" className="hero-share hero-search" aria-label="Buscar en el menú" onClick={openSearch}>
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-            <circle cx="11" cy="11" r="6.5" />
-            <path d="M20 20l-4.2-4.2" />
-          </svg>
-        </button>
-        <ShareButton title={business.name} className="hero-share">
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-            <path d="M12 15V3M7.5 7.5L12 3l4.5 4.5M5 12v8h14v-8" />
-          </svg>
-        </ShareButton>
-      </div>
-
       <div className="hero-main">
+        {/* Compartir va al final del nombre, en el mismo renglón (fuera del título para los lectores de pantalla). */}
         <div className="hero-title-box">
-          <h1 className="hero-title" style={{ "--hero-chars": longestLine(lines) } as CSSProperties}>
+          <h1
+            className="hero-title"
+            style={{ "--hero-chars": longestLine(lines), "--hero-last": lastLineWidth(lines) } as CSSProperties}
+          >
             {lines.map((line, index) => (
               <Fragment key={index}>
                 {index > 0 && <br />}
@@ -83,6 +73,11 @@ export default function StoreHero() {
               </Fragment>
             ))}
           </h1>
+          <ShareButton title={business.name} className="hero-share">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+              <path d="M12 15V3M7.5 7.5L12 3l4.5 4.5M5 12v8h14v-8" />
+            </svg>
+          </ShareButton>
         </div>
         <div className="hero-photo">
           <Image

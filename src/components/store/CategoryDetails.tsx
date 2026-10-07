@@ -3,7 +3,15 @@
 import { useRef, type ReactNode } from "react";
 
 /** Categoría desplegable del menú: el encabezado abre y cierra sus productos. */
-export default function CategoryDetails({ id, summary, children }: { id: string; summary: ReactNode; children: ReactNode }) {
+interface CategoryDetailsProps {
+  id: string;
+  summary: ReactNode;
+  /** Arranca desplegada (lo configura el local). */
+  defaultOpen?: boolean;
+  children: ReactNode;
+}
+
+export default function CategoryDetails({ id, summary, defaultOpen = false, children }: CategoryDetailsProps) {
   const ref = useRef<HTMLDetailsElement>(null);
 
   // Al cerrarla desde el encabezado fijo (ya bajando por sus productos), se vuelve a su lugar.
@@ -15,7 +23,7 @@ export default function CategoryDetails({ id, summary, children }: { id: string;
   }
 
   return (
-    <details ref={ref} id={id} className="menu-category" onToggle={handleToggle}>
+    <details ref={ref} id={id} className="menu-category" open={defaultOpen} onToggle={handleToggle}>
       <summary className="menu-category-head">{summary}</summary>
       <div className="menu-category-body">{children}</div>
     </details>

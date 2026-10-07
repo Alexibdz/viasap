@@ -5,7 +5,7 @@ import FeaturedRail from "@/components/store/FeaturedRail";
 import MenuSection from "@/components/store/MenuSection";
 import StoreHero from "@/components/store/StoreHero";
 import { getBusiness, getMenu } from "@/lib/data";
-import { featuredOffers, menuOffers } from "@/lib/menu";
+import { featuredOffers, listedCategories, menuOffers } from "@/lib/menu";
 
 export default async function StorePage({ params }: PageProps<"/[slug]">) {
   const { slug } = await params;
@@ -14,6 +14,8 @@ export default async function StorePage({ params }: PageProps<"/[slug]">) {
 
   const featured = featuredOffers(menu);
   const offers = menuOffers(menu);
+  // Las ofertas van en el carrusel de arriba: su categoría no se repite en la lista.
+  const categories = listedCategories(menu);
 
   return (
     <div className="storefront">
@@ -26,9 +28,9 @@ export default async function StorePage({ params }: PageProps<"/[slug]">) {
           </div>
         )}
         {featured.length > 0 && <FeaturedRail slug={slug} items={featured} offers={offers} />}
-        {menu.length > 0 && (
+        {categories.length > 0 && (
           <section className="menu-categories" aria-label="Menú">
-            {menu.map((category) => (
+            {categories.map((category) => (
               <MenuSection key={category.id} slug={slug} category={category} offers={offers} />
             ))}
           </section>

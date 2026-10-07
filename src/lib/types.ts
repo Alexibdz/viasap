@@ -158,6 +158,8 @@ export interface Category {
   kind?: "offers";
   /** Sin el campo "¿Alguna aclaración?" en sus productos (bebidas). */
   hideNotes?: boolean;
+  /** La tienda la muestra desplegada al entrar (si no, arranca cerrada). */
+  expanded?: boolean;
   /** Agrupaciones dentro de la categoría. Con una sola, no se muestra título de grupo. */
   subcategories: Subcategory[];
 }
@@ -211,19 +213,6 @@ export interface ProductContext {
   offer?: OfferInfo;
   /** El cliente puede dejar una aclaración (no en las categorías marcadas, como bebidas). */
   allowsNotes: boolean;
-}
-
-export interface SearchEntry {
-  productId: string;
-  name: string;
-  description?: string;
-  imageUrl?: string;
-  categoryId: string;
-  categoryName: string;
-  priceFrom: number;
-  /** Tiene presentaciones con precios distintos: el precio se muestra "desde". */
-  hasVariants: boolean;
-  soldOut: boolean;
 }
 
 export interface CartOption {
