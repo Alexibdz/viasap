@@ -4,6 +4,7 @@ import { useState } from "react";
 import { changeOrderStatus } from "@/app/admin/actions";
 import { useStore } from "@/components/store/StoreProvider";
 import { useToast } from "@/components/store/ToastProvider";
+import { openWhatsApp } from "@/lib/browser";
 import { usePersistentFlag } from "@/lib/client-hooks";
 import { whatsappUrl } from "@/lib/order";
 import { customerNotice, statusLabel } from "@/lib/order-status";
@@ -21,7 +22,7 @@ export function useOrderActions() {
 
   function messageCustomer(order: StoredOrder, status: OrderStatus = order.status) {
     const text = customerNotice(order, business, status);
-    window.open(whatsappUrl(toWhatsAppNumber(order.customer.phone), text), "_blank");
+    openWhatsApp(whatsappUrl(toWhatsAppNumber(order.customer.phone), text));
   }
 
   async function moveTo(order: StoredOrder, status: OrderStatus, reason?: string) {

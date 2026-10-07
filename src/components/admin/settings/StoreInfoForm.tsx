@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Copy, GeoAlt, Whatsapp } from "react-bootstrap-icons";
 import { saveStoreInfo } from "@/app/admin/actions";
 import { useToast } from "@/components/store/ToastProvider";
+import WhatsAppLink from "@/components/store/WhatsAppLink";
 import { copyText } from "@/lib/browser";
 import { useIsClient } from "@/lib/client-hooks";
 import { whatsappUrl } from "@/lib/order";
@@ -89,9 +90,9 @@ export default function StoreInfoForm({ business }: { business: Business }) {
           htmlFor="s-wa"
           error={errors.whatsapp}
           hint={
-            <a href={whatsappUrl(toWhatsAppNumber(value.whatsapp))} target="_blank" rel="noopener noreferrer" className="adm-link">
+            <WhatsAppLink href={whatsappUrl(toWhatsAppNumber(value.whatsapp))} className="adm-link">
               <Whatsapp aria-hidden /> Probar el número
-            </a>
+            </WhatsAppLink>
           }
         >
           <input

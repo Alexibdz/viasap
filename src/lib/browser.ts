@@ -35,3 +35,19 @@ export async function copyText(text: string, container: HTMLElement = document.b
   textarea.remove();
   return copied;
 }
+
+/** Celular o tablet (pantalla táctil como puntero principal): ahí WhatsApp es una app. */
+export function isHandheld(): boolean {
+  return window.matchMedia("(pointer: coarse)").matches;
+}
+
+/**
+ * Abre un chat de WhatsApp (link wa.me). En el celular va en la misma pestaña: la app
+ * toma el link y la página queda como estaba. En una pestaña nueva, el navegador se
+ * quedaría con una pestaña en blanco (about:blank). En la compu, pestaña nueva con
+ * WhatsApp Web.
+ */
+export function openWhatsApp(url: string) {
+  if (isHandheld()) window.location.href = url;
+  else window.open(url, "_blank");
+}

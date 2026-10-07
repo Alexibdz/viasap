@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ArrowCounterclockwise, Check2, Copy, HourglassSplit, Whatsapp, XLg } from "react-bootstrap-icons";
 import { useCart, useStore } from "@/components/store/StoreProvider";
 import { useToast } from "@/components/store/ToastProvider";
+import WhatsAppLink from "@/components/store/WhatsAppLink";
 import { copyText, createId } from "@/lib/browser";
 import { formatMoney } from "@/lib/format";
 import { cancelOrder } from "@/lib/order-actions";
@@ -70,9 +71,9 @@ export default function OrderSent({ order }: { order: SentOrder }) {
           Si ya le habías mandado el mensaje a {business.name}, avisales que lo cancelaste para que no lo preparen.
         </p>
         <div className="sent-actions">
-          <a href={cancelRequest} target="_blank" rel="noopener noreferrer" className="btn-whatsapp">
+          <WhatsAppLink href={cancelRequest} className="btn-whatsapp">
             <Whatsapp size={20} aria-hidden /> Avisar por WhatsApp
-          </a>
+          </WhatsAppLink>
           <button type="button" className="btn-ghost" onClick={rebuild}>
             <ArrowCounterclockwise aria-hidden /> Volver a armar el pedido
           </button>
@@ -115,9 +116,9 @@ export default function OrderSent({ order }: { order: SentOrder }) {
       </div>
 
       <div className="sent-actions">
-        <a href={order.url} target="_blank" rel="noopener noreferrer" className="btn-whatsapp">
+        <WhatsAppLink href={order.url} className="btn-whatsapp">
           <Whatsapp size={20} aria-hidden /> Abrir WhatsApp de nuevo
-        </a>
+        </WhatsAppLink>
         <button type="button" className="btn-ghost" onClick={copyOrder}>
           <Copy aria-hidden /> Copiar pedido
         </button>
@@ -134,9 +135,9 @@ export default function OrderSent({ order }: { order: SentOrder }) {
           <p>
             <strong>El local ya está preparando tu pedido.</strong> Para cancelarlo, escribiles:
           </p>
-          <a href={cancelRequest} target="_blank" rel="noopener noreferrer" className="btn-ghost">
+          <WhatsAppLink href={cancelRequest} className="btn-ghost">
             <Whatsapp aria-hidden /> Escribir al local
-          </a>
+          </WhatsAppLink>
         </div>
       ) : view === "confirm-cancel" ? (
         <div className="sent-cancel">

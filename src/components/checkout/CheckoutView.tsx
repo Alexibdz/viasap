@@ -14,6 +14,7 @@ import {
   type CheckoutDraft,
   type Step,
 } from "@/lib/checkout";
+import { openWhatsApp } from "@/lib/browser";
 import { useIsClient, useNow } from "@/lib/client-hooks";
 import { formatMoney } from "@/lib/format";
 import { describeStatus, getOpenStatus } from "@/lib/hours";
@@ -229,14 +230,14 @@ function CheckoutFlow() {
     };
 
     persist();
-    // Se abre en el mismo click para que el navegador no lo bloquee como pop-up.
-    window.open(url, "_blank");
-    // El pedido ya salió por WhatsApp; registrarlo para el panel va en segundo plano.
+    // Registrarlo para el panel va en segundo plano: el pedido sale por WhatsApp.
     void submitOrder(business.slug, input);
     clear();
     setSent({ ...ref, message, url, total: summary.total, method: fulfillment.method, items });
     window.history.replaceState(null, "", pathname);
     window.scrollTo({ top: 0 });
+    // Al final y en el mismo click: así el navegador no lo bloquea y nada lo interrumpe.
+    openWhatsApp(url);
   }
 
   // En el primer paso todavía no hay envío elegido.
