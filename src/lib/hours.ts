@@ -93,14 +93,10 @@ export function describeStatus(status: OpenStatus): string {
   return `Abrimos el ${WEEKDAY_NAMES[next.day].toLowerCase()} a las ${next.time}`;
 }
 
-/** Versión corta para la etiqueta de estado: "Abierto · cierra 00:30" o "Cerrado · abre hoy 20:00". */
-export function shortStatus(status: OpenStatus): string {
-  if (status.open) return `Abierto · cierra ${status.closesAt}`;
-  const next = status.nextOpening;
-  if (!next) return "Cerrado";
-  const when =
-    next.daysAhead === 0 ? "hoy" : next.daysAhead === 1 ? "mañana" : `el ${WEEKDAY_NAMES[next.day].toLowerCase()}`;
-  return `Cerrado · abre ${when} ${next.time}`;
+/** Cuándo abre, en corto: "hoy 20:00", "mañana 11:00" o "jueves 20:00". */
+export function nextOpeningLabel(next: { day: Weekday; time: string; daysAhead: number }): string {
+  const when = next.daysAhead === 0 ? "hoy" : next.daysAhead === 1 ? "mañana" : WEEKDAY_NAMES[next.day].toLowerCase();
+  return `${when} ${next.time}`;
 }
 
 /** "11:00 a 14:30 y 19:30 a 23:30" o "Cerrado". */

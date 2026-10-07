@@ -1,8 +1,8 @@
 # viasap
 
 Catálogo online y pedidos por WhatsApp para rotiserías y locales de comida. Cada local tiene su link
-(`/doble-queso`), el cliente arma el pedido desde el celular y lo manda por WhatsApp con todo resuelto:
-productos y opciones, entrega (con mapa y costo por zona), forma de pago y total. El local los recibe
+(`/rotiseria-alexis`), el cliente arma el pedido desde el celular y lo manda por WhatsApp con todo resuelto:
+productos y opciones, entrega (con mapa y costo según la zona: dentro o fuera de boulevard), forma de pago y total. El local los recibe
 también en su panel (`/admin`), donde los confirma y edita el menú, los cupones y los ajustes.
 
 **Beta 1:** sin base de datos. Los menús de ejemplo están en `src/data/stores/`; lo que se cambia desde el
@@ -13,7 +13,7 @@ panel y los pedidos se guardan como archivos JSON en `data/` (ver [Datos de la b
 ```bash
 npm install
 npm run dev      # http://localhost:3000
-npm test         # mensaje de WhatsApp, horarios, precios, checkout, formularios del panel y datos
+npm test         # mensaje de WhatsApp, horarios, precios, envíos, ofertas, checkout, formularios del panel y datos
 npm run lint
 npm run build && npm start
 ```
@@ -21,28 +21,33 @@ npm run build && npm start
 ### Probar desde el celular
 
 1. `npm run dev -- -H 0.0.0.0`
-2. En el celular (misma red Wi-Fi) abrí `http://<IP-de-tu-PC>:3000/doble-queso`.
+2. En el celular (misma red Wi-Fi) abrí `http://<IP-de-tu-PC>:3000/rotiseria-alexis`.
 
 `next.config.ts` ya permite las IPs `192.168.x.x` y `10.x.x.x`. "Usar mi ubicación actual" necesita HTTPS,
 así que en la red local no anda: usá el buscador de direcciones.
 
 ### Probar el envío por WhatsApp
 
-Los números de las tiendas de ejemplo son inválidos a propósito. Poné el tuyo en el campo `whatsapp` de
-`src/data/stores/doble-queso.ts`, en formato internacional y solo dígitos: `549` + característica sin el 0 +
-número sin el 15 (por ejemplo `5493434123456`).
+La tienda de ejemplo manda los pedidos al WhatsApp real de Rotisería Alexis (343 661-7446). Para probar sin
+molestar, poné el tuyo en el campo `whatsapp` de `src/data/stores/rotiseria-alexis.ts`, en formato internacional y
+solo dígitos: `549` + característica sin el 0 + número sin el 15 (por ejemplo `5493434123456`).
 
 ## Panel del local
 
-Entrá a `/admin` (te lleva a `/admin/ingresar`). Cuentas de prueba, con contraseña `demo1234`:
-`admin@doblequeso.demo` y `admin@laesquina.demo`. Cada cuenta ve solo su local.
+Entrá a `/admin` (te lleva a `/admin/ingresar`). Cuenta de prueba: `admin@rotiseriaalexis.demo`, contraseña `demo1234`.
+Cada cuenta ve solo su local.
 
 - **Pedidos:** tablero con nuevos, en preparación y listos. Se actualiza solo cada pocos segundos y avisa
   con un sonido y en la pestaña del navegador ("(2) Pedidos nuevos"). Desde el detalle se confirma, se marca
   listo o entregado, se cancela con un motivo y se imprime la comanda; si querés, abre WhatsApp con el aviso
   para el cliente. El cliente ve el estado en la pantalla final de su pedido.
-- **Menú:** productos con presentaciones y opciones, fotos, agotado, destacado y orden; categorías y grupos.
-  Las categorías sin productos no se muestran en la tienda.
+- **Menú:** productos con presentaciones y opciones, foto opcional, agotado y orden; categorías y grupos.
+  Cada categoría lleva un emoji de decoración (🍕) y en la tienda se despliega al tocarla; las que no tienen
+  productos no se muestran. Una categoría puede ser **de ofertas**: ahí cada producto se arma con el **armador de ofertas**
+  (productos del menú, presentación y cantidad) y la tienda muestra qué incluye, el precio por separado y el ahorro.
+  Una oferta también puede estar dentro de cualquier categoría ("Es una oferta o promo", por ejemplo las promos de
+  pizzas dentro de Pizzas). Las ofertas marcadas como **destacadas** aparecen arriba del menú, en "Ofertas
+  destacadas". Un producto incluido en una oferta no se puede borrar sin sacarlo antes de la oferta.
 - **Cupones** y **Ajustes** (datos del local, horarios, entregas, pagos y apariencia).
 - **Pausar pedidos:** el interruptor "Recibiendo pedidos" corta los pedidos por un rato, sin tocar el horario.
 
@@ -50,14 +55,17 @@ Entrá a `/admin` (te lleva a `/admin/ingresar`). Cuentas de prueba, con contras
 
 | Link | Qué muestra | Cupones |
 | --- | --- | --- |
-| `/doble-queso` | Hamburguesería. Acepta pedidos con el local cerrado. | `BIENVENIDA` (10 %), `FINDE2000` ($2.000 desde $15.000) |
-| `/la-esquina` | Rotisería. No toma pedidos fuera de horario. | `ESQUINA15` (15 % desde $12.000) |
+| `/rotiseria-alexis` | Rotisería Alexis: parrilla, pizzas y promos, hamburguesas, panchos, torpedos, sándwiches, minutas, pastas, empanadas XXL, pollo, rabas, bebidas y postres; ofertas y envío dentro / fuera de boulevard y zona rural. Acepta pedidos con el local cerrado. | `BIENVENIDA` (10 %), `FINDE2000` ($2.000 desde $15.000) |
 
-Los locales, direcciones y datos bancarios son ficticios. Fotos de ejemplo: Unsplash.
+El catálogo y los precios salen de dos listas reales que las rotiserías mandan por WhatsApp (donde un producto
+estaba en las dos, quedó el precio de Rotisería Alexis). Las bebidas no llevan "¿Alguna aclaración?": se configura
+por categoría ("Sin aclaraciones"). La dirección y los datos bancarios son ficticios; el WhatsApp es el de la rotisería. El link viejo (`/doble-queso`)
+redirige al nuevo. Los productos nuevos no tienen foto a propósito: se prioriza la foto
+real del producto antes que una de referencia. Fotos de ejemplo: Unsplash.
 
 ## Sumar una tienda
 
-1. Copiá `src/data/stores/doble-queso.ts` y cambiá slug, datos, colores (`theme`), horarios, zonas de envío,
+1. Copiá `src/data/stores/rotiseria-alexis.ts` y cambiá slug, datos, colores (`theme`), horarios, zonas de envío,
    formas de pago, cupones y menú.
 2. Agregala a la lista de `src/data/stores/index.ts`.
 3. Las fotos van en `public/` (para usar URLs externas hay que configurar `images.remotePatterns`).
@@ -71,7 +79,7 @@ Los locales, direcciones y datos bancarios son ficticios. Fotos de ejemplo: Unsp
 src/
   app/
     page.tsx                         portada de la plataforma
-    [slug]/page.tsx                  menú del local: portada, "Lo más pedido", pestañas y secciones
+    [slug]/page.tsx                  menú del local: portada, "Ofertas destacadas" y categorías desplegables
     [slug]/@modal/(.)producto/[id]/  producto como hoja sobre el menú (ruta interceptada, con URL propia)
     [slug]/producto/[id]/            producto como página completa (link directo o compartido)
     [slug]/pedido/                   checkout en 3 pasos (?paso=2, ?paso=3)
@@ -91,6 +99,10 @@ src/
     order-status.ts  estados del pedido y avisos para el cliente
     admin-forms.ts   validación de los formularios del panel
     checkout.ts      totales y validaciones de cada paso
+    shipping.ts      costo de envío según la zona que elige el cliente
+    offers.ts        qué incluye cada oferta, precio por separado y ahorro
+    hero.ts          renglones del nombre en la portada
+    store-upgrade.ts actualiza tiendas guardadas con un formato anterior
     hours.ts         abierto/cerrado según horario y zona horaria del local
     cart.ts          carrito por tienda en localStorage
     server/          archivos de data/, tiendas, pedidos, sesión del panel y contraseñas
@@ -100,7 +112,11 @@ src/
 Algunas decisiones:
 
 - El carrito se guarda en el navegador, por tienda. Nombre, teléfono y dirección se recuerdan para el próximo pedido.
-- El envío se cobra por zonas: radio en km (línea recta) desde el local.
+- El envío se cobra por zonas con nombre (dentro de boulevard, fuera de boulevard, zona rural…): el cliente elige
+  la suya al pedir y ve el costo. No se calcula la distancia; el mapa queda para que el local encuentre la casa.
+- La portada usa el logo (no una foto de fondo) y las fuentes Anton y Archivo. Sus etiquetas abren una hoja
+  para cada cosa: el horario ("Abierto · cierra 00:30" / "Cerrado · abre hoy 20:00") y los envíos. Con el local cerrado aparece una cinta
+  animada (quieta si el sistema pide menos movimiento). La "foto para compartir" solo se usa en las vistas previas.
 - Los cupones se validan en el servidor; la lista nunca llega al navegador.
 - El mensaje no usa emojis: algunos llegan rotos en los links `wa.me`.
 - Nominatim es gratis pero limitado (1 consulta por segundo). Para producción conviene Google Places,
@@ -115,7 +131,8 @@ Algunas decisiones:
 Todo lo que cambia mientras la app corre se guarda en `data/` (está en `.gitignore`):
 
 - `data/stores/<slug>.json`: la tienda editada desde el panel. Si no existe, se usa la de `src/data/stores/`.
-  Para volver a los datos de ejemplo, borrá ese archivo.
+  Para volver a los datos de ejemplo, borrá ese archivo. Las zonas de envío guardadas con el formato anterior (por km)
+  se leen como zonas con nombre ("Hasta 3 km") y se pueden renombrar desde Ajustes.
 - `data/orders/<slug>.json`: los pedidos (hasta 3000 por tienda).
 - `data/uploads/<slug>/`: las fotos subidas, achicadas en el navegador antes de subirse.
 

@@ -1,6 +1,6 @@
 import { formatMoney, onlyDigits, parseAmount } from "./format";
-import { quoteShipping, type ShippingQuote } from "./geo";
 import { couponDiscount } from "./pricing";
+import { quoteShipping, type ShippingQuote } from "./shipping";
 import type { AddressValue, Business, BuildingType, CouponRule, DeliveryMethod, PaymentMethod } from "./types";
 
 // Reglas del checkout en funciones puras: la pantalla solo las muestra.
@@ -12,6 +12,8 @@ export interface CheckoutDraft {
   phone: string;
   method: DeliveryMethod | null;
   address: AddressValue | null;
+  /** Zona de envío elegida ("Dentro de boulevard"). */
+  zoneId: string | null;
   buildingType: BuildingType;
   floor: string;
   apartment: string;
@@ -21,12 +23,22 @@ export interface CheckoutDraft {
   coupon: CouponRule | null;
 }
 
-export type CheckoutField = "method" | "address" | "unit" | "minOrder" | "name" | "phone" | "closed" | "payment" | "cash";
+export type CheckoutField =
+  | "method"
+  | "address"
+  | "zone"
+  | "unit"
+  | "minOrder"
+  | "name"
+  | "phone"
+  | "closed"
+  | "payment"
+  | "cash";
 
 /** Campos de cada paso, en el orden en que aparecen en pantalla. */
 export const STEP_FIELDS: Record<Step, CheckoutField[]> = {
   1: [],
-  2: ["method", "address", "unit", "minOrder", "name", "phone"],
+  2: ["method", "address", "zone", "unit", "minOrder", "name", "phone"],
   3: ["closed", "payment", "cash"],
 };
 
@@ -51,8 +63,7 @@ export function evaluateCheckout(
   isOpen: boolean | null,
 ): CheckoutSummary {
   const { delivery } = business;
-  const quote =
-    draft.method === "delivery" ? quoteShipping(delivery, business.address, draft.address?.location ?? null) : null;
+  const quote = draft.method === "delivery" ? quoteShipping(delivery, draft.zoneId) : null;
   const shipping = quote?.status === "ok" ? quote.cost : 0;
   const discount = draft.coupon ? couponDiscount(draft.coupon, subtotal) : 0;
   const total = subtotal - discount + shipping;
@@ -62,8 +73,8 @@ export function evaluateCheckout(
   if (!draft.method) errors.method = "Elegí cómo querés recibir tu pedido.";
   if (draft.method === "delivery") {
     if (!draft.address?.label) errors.address = "Buscá y elegí tu dirección.";
-    else if (quote?.status === "pending") errors.address = "Marcá tu ubicación en el mapa.";
-    else if (quote?.status === "out-of-range") errors.address = "Tu dirección está fuera de la zona de envío.";
+    else if (!draft.address.location) errors.address = "Marcá tu ubicación en el mapa.";
+    if (quote?.status === "pending") errors.zone = "Elegí tu zona de envío.";
     if (draft.buildingType === "apartment" && !draft.floor.trim() && !draft.apartment.trim()) {
       errors.unit = "Indicá el piso y el departamento.";
     }

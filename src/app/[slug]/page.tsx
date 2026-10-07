@@ -2,27 +2,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JournalText } from "react-bootstrap-icons";
 import FeaturedRail from "@/components/store/FeaturedRail";
-import MenuNav from "@/components/store/MenuNav";
 import MenuSection from "@/components/store/MenuSection";
 import StoreHero from "@/components/store/StoreHero";
 import { getBusiness, getMenu } from "@/lib/data";
-import { featuredProducts } from "@/lib/menu";
+import { featuredOffers, menuOffers } from "@/lib/menu";
 
 export default async function StorePage({ params }: PageProps<"/[slug]">) {
   const { slug } = await params;
   const [business, menu] = await Promise.all([getBusiness(slug), getMenu(slug)]);
   if (!business || !menu) notFound();
 
-  const featured = featuredProducts(menu);
-  const sections = [
-    ...(featured.length ? [{ id: "destacados", name: "Lo más pedido" }] : []),
-    ...menu.map(({ id, name }) => ({ id, name })),
-  ];
+  const featured = featuredOffers(menu);
+  const offers = menuOffers(menu);
 
   return (
     <div className="storefront">
       <StoreHero />
-      {sections.length > 0 && <MenuNav sections={sections} />}
       <main className="menu">
         {menu.length === 0 && (
           <div className="empty-state">
@@ -30,10 +25,14 @@ export default async function StorePage({ params }: PageProps<"/[slug]">) {
             <p>Estamos armando el menú. Volvé en un rato.</p>
           </div>
         )}
-        {featured.length > 0 && <FeaturedRail slug={slug} products={featured} />}
-        {menu.map((category) => (
-          <MenuSection key={category.id} slug={slug} category={category} />
-        ))}
+        {featured.length > 0 && <FeaturedRail slug={slug} items={featured} offers={offers} />}
+        {menu.length > 0 && (
+          <section className="menu-categories" aria-label="Menú">
+            {menu.map((category) => (
+              <MenuSection key={category.id} slug={slug} category={category} offers={offers} />
+            ))}
+          </section>
+        )}
         <footer className="store-footer">
           <p>
             <strong>{business.name}</strong> · {business.address.street}, {business.address.city}

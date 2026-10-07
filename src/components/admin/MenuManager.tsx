@@ -14,7 +14,8 @@ import {
   type CategoryDraft,
 } from "@/lib/admin-forms";
 import { formatMoney, normalizeText } from "@/lib/format";
-import { hasNamedVariants, priceFrom } from "@/lib/pricing";
+import { isOfferProduct } from "@/lib/menu";
+import { priceFrom, showsPriceFrom } from "@/lib/pricing";
 import type { Category } from "@/lib/types";
 import CategoryModal from "./CategoryModal";
 
@@ -32,7 +33,15 @@ function applyChange(menu: Category[], change: MenuChange): Category[] {
   return next;
 }
 
-const NEW_CATEGORY: CategoryDraft = { id: null, name: "", imageUrl: "", groups: [{ id: null, name: "" }] };
+const NEW_CATEGORY: CategoryDraft = {
+  id: null,
+  name: "",
+  imageUrl: "",
+  emoji: "",
+  offers: false,
+  hideNotes: false,
+  groups: [{ id: null, name: "" }],
+};
 
 export default function MenuManager({ menu }: { menu: Category[] }) {
   const notify = useToast();
@@ -99,9 +108,13 @@ export default function MenuManager({ menu }: { menu: Category[] }) {
                 {category.imageUrl && <Image src={category.imageUrl} alt="" fill sizes="48px" />}
               </span>
               <div className="min-w-0">
-                <h2 className="adm-category-name">{category.name}</h2>
+                <h2 className="adm-category-name">
+                  {category.emoji && <span aria-hidden>{category.emoji} </span>}
+                  {category.name}
+                </h2>
                 <p className="adm-muted">
-                  {count} {count === 1 ? "producto" : "productos"}
+                  {count} {count === 1 ? (category.kind === "offers" ? "oferta" : "producto") : category.kind === "offers" ? "ofertas" : "productos"}
+                  {category.kind === "offers" && <span className="adm-flag">Ofertas</span>}
                 </p>
               </div>
               <div className="adm-category-actions">
@@ -157,29 +170,39 @@ export default function MenuManager({ menu }: { menu: Category[] }) {
                             <span className="adm-product-text">
                               <strong>{product.name}</strong>
                               <small>
-                                {hasNamedVariants(product) ? `desde ${formatMoney(priceFrom(product))}` : formatMoney(priceFrom(product))}
+                                {showsPriceFrom(product) ? `desde ${formatMoney(priceFrom(product))}` : formatMoney(priceFrom(product))}
+                                {product.bundle?.length
+                                  ? ` · oferta con ${product.bundle.length} ${product.bundle.length === 1 ? "producto" : "productos"}`
+                                  : isOfferProduct(product, category)
+                                    ? " · oferta"
+                                    : ""}
                                 {product.optionGroups?.length
                                   ? ` · ${product.optionGroups.length} ${product.optionGroups.length === 1 ? "grupo" : "grupos"} de opciones`
                                   : ""}
                               </small>
                             </span>
                           </Link>
-                          <button
-                            type="button"
-                            className={`adm-star${product.featured ? " is-on" : ""}`}
-                            aria-pressed={Boolean(product.featured)}
-                            aria-label={product.featured ? "Quitar de destacados" : "Destacar"}
-                            title='Destacado en "Lo más pedido"'
-                            onClick={() =>
-                              run(
-                                { type: "flags", productId: product.id, flags: { featured: !product.featured } },
-                                () => setProductFlags(product.id, { featured: !product.featured }),
-                                product.featured ? "Ya no está destacado" : "Destacado en la tienda",
-                              )
-                            }
-                          >
-                            {product.featured ? <StarFill /> : <Star />}
-                          </button>
+                          {/* Solo las ofertas se destacan (arriba del menú, en "Ofertas destacadas"). */}
+                          {isOfferProduct(product, category) ? (
+                            <button
+                              type="button"
+                              className={`adm-star${product.featured ? " is-on" : ""}`}
+                              aria-pressed={Boolean(product.featured)}
+                              aria-label={product.featured ? "Quitar de ofertas destacadas" : "Destacar oferta"}
+                              title='Destacada en "Ofertas destacadas"'
+                              onClick={() =>
+                                run(
+                                  { type: "flags", productId: product.id, flags: { featured: !product.featured } },
+                                  () => setProductFlags(product.id, { featured: !product.featured }),
+                                  product.featured ? "Ya no está destacada" : "Destacada en la tienda",
+                                )
+                              }
+                            >
+                              {product.featured ? <StarFill /> : <Star />}
+                            </button>
+                          ) : (
+                            <span className="adm-star" aria-hidden />
+                          )}
                           <button
                             type="button"
                             role="switch"
@@ -222,7 +245,7 @@ export default function MenuManager({ menu }: { menu: Category[] }) {
             })}
 
             <Link href={`/admin/menu/nuevo?categoria=${category.id}`} className="adm-add-row">
-              <PlusLg aria-hidden /> Agregar producto en {category.name}
+              <PlusLg aria-hidden /> {category.kind === "offers" ? "Armar oferta" : "Agregar producto"} en {category.name}
             </Link>
           </section>
         );

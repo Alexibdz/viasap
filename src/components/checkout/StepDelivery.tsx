@@ -1,10 +1,11 @@
 "use client";
 
-import { Bicycle, GeoAltFill, Shop, SignTurnRight } from "react-bootstrap-icons";
+import { Bicycle, GeoAltFill, PinMap, Shop, SignTurnRight } from "react-bootstrap-icons";
 import { useStore } from "@/components/store/StoreProvider";
 import type { CheckoutDraft, CheckoutField, CheckoutSummary } from "@/lib/checkout";
 import { formatMoney } from "@/lib/format";
 import { googleMapsUrl } from "@/lib/geo";
+import { shippingFrom } from "@/lib/shipping";
 import type { BuildingType } from "@/lib/types";
 import AddressPicker from "./AddressPicker";
 import { Field, FieldError, Segmented, SelectCard } from "./FormParts";
@@ -26,7 +27,7 @@ export default function StepDelivery({ draft, summary, update, showErrors }: Ste
   const business = useStore();
   const { delivery, address } = business;
   const error = (field: CheckoutField) => (showErrors ? summary.errors[field] : undefined);
-  const cheapest = delivery.zones.length ? Math.min(...delivery.zones.map((z) => z.cost)) : null;
+  const from = shippingFrom(delivery);
   const { quote } = summary;
 
   return (
@@ -51,7 +52,9 @@ export default function StepDelivery({ draft, summary, update, showErrors }: Ste
               onSelect={() => update({ method: "delivery" })}
               icon={<Bicycle size={22} />}
               title="Envío a domicilio"
-              subtitle={cheapest === null ? "Costo a coordinar" : `Desde ${formatMoney(cheapest)}`}
+              subtitle={
+                from === null ? "Costo a coordinar" : `${from.varies ? "Desde " : ""}${formatMoney(from.cost)}`
+              }
             />
           )}
         </div>
@@ -85,21 +88,30 @@ export default function StepDelivery({ draft, summary, update, showErrors }: Ste
             <FieldError message={error("address")} />
           </div>
 
-          {quote?.status === "ok" && (
-            <p className="shipping-line">
-              <Bicycle aria-hidden /> Envío a tu zona ({quote.km.toFixed(1).replace(".", ",")} km):{" "}
-              <strong>{formatMoney(quote.cost)}</strong>
-            </p>
+          {delivery.zones.length > 0 && (
+            <div className="field" id="campo-zone">
+              <span className="field-label" id="zona-label">
+                ¿En qué zona estás?
+              </span>
+              <div className="select-list" role="radiogroup" aria-labelledby="zona-label">
+                {delivery.zones.map((zone) => (
+                  <SelectCard
+                    key={zone.id}
+                    name="zona"
+                    selected={draft.zoneId === zone.id}
+                    onSelect={() => update({ zoneId: zone.id })}
+                    icon={<PinMap size={20} />}
+                    title={zone.name}
+                    subtitle={zone.cost ? `Envío ${formatMoney(zone.cost)}` : "Envío gratis"}
+                  />
+                ))}
+              </div>
+              <FieldError message={error("zone")} />
+            </div>
           )}
           {quote?.status === "to-agree" && (
             <p className="shipping-line">
               <Bicycle aria-hidden /> El costo del envío lo coordinamos por WhatsApp.
-            </p>
-          )}
-          {quote?.status === "out-of-range" && (
-            <p className="notice notice--danger">
-              Esa dirección queda a {quote.km.toFixed(1).replace(".", ",")} km y no llegamos hasta ahí. Podés elegir
-              retirarlo en el local.
             </p>
           )}
           {summary.errors.minOrder && (

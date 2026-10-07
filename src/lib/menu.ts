@@ -1,5 +1,6 @@
-import { hasNamedVariants, priceFrom } from "./pricing";
-import type { Category, Product, ProductContext, SearchEntry, Subcategory } from "./types";
+import { productIndex, resolveOffer } from "./offers";
+import { priceFrom, showsPriceFrom } from "./pricing";
+import type { Category, OfferInfo, Product, ProductContext, SearchEntry, Subcategory } from "./types";
 
 /**
  * ¿Vale la pena mostrar el nombre del grupo? No cuando la categoría tiene un solo
@@ -11,9 +12,13 @@ export function showsSubcategoryName(category: Category, subcategory: Subcategor
   return !(subcategory.products.length === 1 && only.name.toLowerCase() === subcategory.name.toLowerCase());
 }
 
-/** Encabezado del producto en el mensaje de WhatsApp: "Minutas · De pollo" o "Bebidas". */
+/**
+ * Encabezado del producto en el mensaje de WhatsApp: "Minutas · De pollo" o "Bebidas".
+ * Un grupo que se llama igual que su categoría ("Pizzas" junto a "Promos") no se repite.
+ */
 export function sectionLabel(category: Category, subcategory: Subcategory): string {
-  return showsSubcategoryName(category, subcategory) ? `${category.name} · ${subcategory.name}` : category.name;
+  const sameName = subcategory.name.trim().toLowerCase() === category.name.trim().toLowerCase();
+  return showsSubcategoryName(category, subcategory) && !sameName ? `${category.name} · ${subcategory.name}` : category.name;
 }
 
 /**
@@ -34,8 +39,24 @@ export function allProducts(menu: Category[]): Product[] {
   return menu.flatMap(categoryProducts);
 }
 
-export function featuredProducts(menu: Category[]): Product[] {
-  return allProducts(menu).filter((p) => p.featured && !p.soldOut);
+/** Es una oferta si se marcó así, si se armó con productos o si está en la categoría de ofertas. */
+export function isOfferProduct(product: Product, category: Pick<Category, "kind">): boolean {
+  return Boolean(product.isOffer || product.bundle?.length || category.kind === "offers");
+}
+
+export interface FeaturedOffer {
+  product: Product;
+  /** Emoji de su categoría, para las ofertas sin foto. */
+  emoji?: string;
+}
+
+/** "Ofertas destacadas": las ofertas marcadas como destacadas, de cualquier categoría (sin agotadas). */
+export function featuredOffers(menu: Category[]): FeaturedOffer[] {
+  return menu.flatMap((category) =>
+    categoryProducts(category)
+      .filter((p) => p.featured && !p.soldOut && isOfferProduct(p, category))
+      .map((product) => ({ product, emoji: category.emoji })),
+  );
 }
 
 export function findProduct(menu: Category[], productId: string): ProductContext | null {
@@ -43,15 +64,35 @@ export function findProduct(menu: Category[], productId: string): ProductContext
     for (const subcategory of category.subcategories) {
       const product = subcategory.products.find((p) => p.id === productId);
       if (product) {
+        const offer = resolveOffer(product, productIndex(allProducts(menu)));
         return {
           product,
           category: { id: category.id, name: category.name },
           sectionLabel: sectionLabel(category, subcategory),
+          allowsNotes: !category.hideNotes,
+          ...(offer ? { offer } : {}),
         };
       }
     }
   }
   return null;
+}
+
+/** Lo que incluye cada oferta del menú, por id de producto. */
+export function menuOffers(menu: Category[]): Record<string, OfferInfo> {
+  const products = allProducts(menu);
+  const catalog = productIndex(products);
+  const offers: Record<string, OfferInfo> = {};
+  for (const product of products) {
+    const offer = resolveOffer(product, catalog);
+    if (offer) offers[product.id] = offer;
+  }
+  return offers;
+}
+
+/** "🍕 Pizzas" (el emoji es decoración: no va en el mensaje de WhatsApp). */
+export function categoryLabel(category: Pick<Category, "name" | "emoji">): string {
+  return category.emoji ? `${category.emoji} ${category.name}` : category.name;
 }
 
 /** Índice liviano para el buscador (se manda al navegador). */
@@ -65,7 +106,7 @@ export function buildSearchIndex(menu: Category[]): SearchEntry[] {
       categoryId: category.id,
       categoryName: category.name,
       priceFrom: priceFrom(product),
-      hasVariants: hasNamedVariants(product),
+      hasVariants: showsPriceFrom(product),
       soldOut: Boolean(product.soldOut),
     })),
   );

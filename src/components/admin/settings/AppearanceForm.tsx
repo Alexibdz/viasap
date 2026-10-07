@@ -71,14 +71,14 @@ export default function AppearanceForm({ business }: { business: Business }) {
   } as CSSProperties;
 
   return (
-    <Panel title="Apariencia" description="El logo, la portada y los colores de tu tienda.">
+    <Panel title="Apariencia" description="El logo, la foto para compartir y los colores de tu tienda.">
       <div className="adm-appearance">
         <div className="adm-appearance-fields">
           <div className="adm-grid-2">
-            <Field label="Logo" error={errors.logoUrl}>
+            <Field label="Logo" error={errors.logoUrl} hint="Se ve grande en la portada de tu tienda.">
               <ImageField value={value.logoUrl} onChange={(logoUrl) => update({ logoUrl })} label="logo" />
             </Field>
-            <Field label="Portada" hint="Foto horizontal, arriba del menú.">
+            <Field label="Foto para compartir" hint="Opcional. Aparece cuando mandás el link por WhatsApp o Instagram.">
               <ImageField value={value.coverUrl} onChange={(coverUrl) => update({ coverUrl })} shape="wide" label="portada" />
             </Field>
           </div>
@@ -101,12 +101,14 @@ export default function AppearanceForm({ business }: { business: Business }) {
         <div className="adm-appearance-preview" style={previewStyle} aria-label="Vista previa">
           <p className="adm-eyebrow">Vista previa</p>
           <div className="adm-mini-store">
-            <div className="adm-mini-cover">
-              {value.coverUrl && <Image src={value.coverUrl} alt="" fill sizes="320px" />}
+            {/* Como la portada de la tienda: el nombre grande y el logo al lado. */}
+            <div className="adm-mini-hero">
+              <strong>{business.name}</strong>
+              <span className="adm-mini-logo">
+                {value.logoUrl && <Image src={value.logoUrl} alt="" fill sizes="64px" />}
+              </span>
             </div>
             <div className="adm-mini-body">
-              {value.logoUrl && <Image src={value.logoUrl} alt="" width={56} height={56} className="adm-mini-logo" />}
-              <strong>{business.name}</strong>
               <span className="pill pill--required">Obligatorio</span>
               <button type="button" className="btn-main" tabIndex={-1}>
                 Agregar <span>$9.000</span>

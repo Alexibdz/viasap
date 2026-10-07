@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeStatus, formatDayRanges, getOpenStatus } from "./hours";
+import { describeStatus, formatDayRanges, getOpenStatus, nextOpeningLabel } from "./hours";
 import type { WeeklySchedule } from "./types";
 
 const TZ = "America/Argentina/Buenos_Aires";
@@ -80,6 +80,12 @@ describe("textos de horarios", () => {
     expect(describeStatus({ open: false, nextOpening: { day: 3, time: "20:00", daysAhead: 3 } })).toBe(
       "Abrimos el miércoles a las 20:00",
     );
+  });
+
+  it("dice cuándo abre, en corto, para la portada", () => {
+    expect(nextOpeningLabel({ day: 5, time: "20:00", daysAhead: 0 })).toBe("hoy 20:00");
+    expect(nextOpeningLabel({ day: 6, time: "11:00", daysAhead: 1 })).toBe("mañana 11:00");
+    expect(nextOpeningLabel({ day: 3, time: "20:00", daysAhead: 4 })).toBe("miércoles 20:00");
   });
 
   it("formatea las franjas de un día", () => {

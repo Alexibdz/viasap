@@ -14,6 +14,7 @@ export interface SavedCustomer {
 export interface SavedDelivery {
   method: DeliveryMethod | null;
   address: AddressValue | null;
+  zoneId: string | null;
   buildingType: BuildingType;
   floor: string;
   apartment: string;
@@ -49,6 +50,7 @@ export function loadDelivery(slug: string): SavedDelivery {
   return load(DELIVERY_PREFIX + slug, {
     method: null,
     address: null,
+    zoneId: null,
     buildingType: "house",
     floor: "",
     apartment: "",

@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { allProducts } from "@/lib/menu";
+import { allProducts, menuOffers } from "@/lib/menu";
 import type { StoreSeed } from "@/lib/types";
 import { stores } from "./index";
 
@@ -37,8 +37,9 @@ describe.each(stores.map((store) => [store.business.slug, store] as [string, Sto
       }
     }
     expect(business.delivery.pickup || business.delivery.delivery).toBe(true);
-    const zones = business.delivery.zones.map((z) => z.upToKm);
-    expect(zones).toEqual([...zones].sort((a, b) => a - b));
+    const zones = business.delivery.zones;
+    expect(duplicates(zones.map((z) => z.id))).toEqual([]);
+    expect(zones.every((z) => SLUG.test(z.id) && z.name.length >= 2 && z.cost >= 0)).toBe(true);
     expect(business.payments.cash || business.payments.transfer).toBeTruthy();
     if (business.payments.mixed) expect(business.payments.transfer).not.toBeNull();
     expect(coupons.every((c) => c.code === c.code.toUpperCase() && c.value > 0)).toBe(true);
@@ -69,6 +70,23 @@ describe.each(stores.map((store) => [store.business.slug, store] as [string, Sto
         expect(group.options.every((o) => o.price >= 0)).toBe(true);
       }
       expect(duplicates((product.optionGroups ?? []).map((g) => g.id)), product.id).toEqual([]);
+    }
+  });
+
+  it("arma las ofertas con productos que existen y con ahorro real", () => {
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const offers = menuOffers(menu);
+    for (const product of products.filter((p) => p.bundle)) {
+      for (const item of product.bundle ?? []) {
+        const included = byId.get(item.productId);
+        expect(included, `${product.id} → ${item.productId}`).toBeDefined();
+        expect(included?.bundle, `${product.id}: no se anidan ofertas`).toBeUndefined();
+        if (included?.variants?.length) {
+          expect(included.variants.some((v) => v.id === item.variantId), `${product.id} → ${item.productId}`).toBe(true);
+        }
+        expect(item.qty).toBeGreaterThan(0);
+      }
+      expect(offers[product.id]?.savings, product.id).toBeGreaterThan(0);
     }
   });
 

@@ -40,6 +40,7 @@ function initialDraft(business: Business): CheckoutDraft {
   const methods: DeliveryMethod[] = [];
   if (business.delivery.pickup) methods.push("pickup");
   if (business.delivery.delivery) methods.push("delivery");
+  const zones = business.delivery.zones;
   const payments: PaymentMethod[] = [];
   if (business.payments.cash) payments.push("cash");
   if (business.payments.transfer) payments.push("transfer");
@@ -48,6 +49,7 @@ function initialDraft(business: Business): CheckoutDraft {
     phone: customer.phone,
     method: saved.method && methods.includes(saved.method) ? saved.method : methods.length === 1 ? methods[0] : null,
     address: saved.address,
+    zoneId: zones.some((z) => z.id === saved.zoneId) ? saved.zoneId : zones.length === 1 ? zones[0].id : null,
     buildingType: saved.buildingType,
     floor: saved.floor,
     apartment: saved.apartment,
@@ -152,6 +154,7 @@ function CheckoutFlow() {
     saveDelivery(business.slug, {
       method: draft.method,
       address: draft.address,
+      zoneId: draft.zoneId,
       buildingType: draft.buildingType,
       floor: draft.floor,
       apartment: draft.apartment,
@@ -183,6 +186,7 @@ function CheckoutFlow() {
             floor: draft.buildingType === "apartment" ? draft.floor.trim() : undefined,
             apartment: draft.buildingType === "apartment" ? draft.apartment.trim() : undefined,
             references: draft.references.trim() || undefined,
+            zone: summary.quote?.status === "ok" ? summary.quote.zone.name : undefined,
             cost: summary.quote?.status === "ok" ? summary.quote.cost : null,
           }
         : { method: "pickup" };
@@ -217,6 +221,7 @@ function CheckoutFlow() {
               method: "delivery",
               address: fulfillment.address,
               location: fulfillment.location,
+              zoneId: draft.zoneId ?? undefined,
               buildingType: fulfillment.buildingType,
               floor: fulfillment.floor,
               apartment: fulfillment.apartment,

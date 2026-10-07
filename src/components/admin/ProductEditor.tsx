@@ -2,24 +2,35 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowLeft, PlusLg, Trash3 } from "react-bootstrap-icons";
 import { deleteProduct, saveProduct } from "@/app/admin/actions";
 import ProductCard from "@/components/store/ProductCard";
 import { useStore } from "@/components/store/StoreProvider";
 import { useToast } from "@/components/store/ToastProvider";
 import { NEW_GROUP, previewProduct, withoutErrors, type FieldErrors, type ProductDraft } from "@/lib/admin-forms";
+import { formatMoney } from "@/lib/format";
+import { resolveOffer, savingsPercent } from "@/lib/offers";
 import { describeGroupRule } from "@/lib/pricing";
+import type { Product } from "@/lib/types";
 import ImageField from "./ImageField";
 import { Field, MoneyInput, Panel, Switch } from "./ui";
 
 type GroupDraft = ProductDraft["optionGroups"][number];
 type OptionDraft = GroupDraft["options"][number];
+type BundleDraft = ProductDraft["bundle"][number];
 
 export interface CategoryChoice {
   id: string;
   name: string;
+  /** Categoría de ofertas: el editor muestra el armador de ofertas. */
+  offers: boolean;
   groups: { id: string; name: string }[];
+}
+
+/** Producto que se puede sumar a una oferta (con el nombre de su categoría para agruparlo). */
+export interface CatalogProduct extends Pick<Product, "id" | "name" | "price" | "variants"> {
+  category: string;
 }
 
 const emptyOption = (): OptionDraft => ({ id: null, name: "", price: "", maxQty: "" });
@@ -36,9 +47,11 @@ function ruleText(group: GroupDraft): string {
 export default function ProductEditor({
   initial,
   categories,
+  catalog,
 }: {
   initial: ProductDraft;
   categories: CategoryChoice[];
+  catalog: CatalogProduct[];
 }) {
   const router = useRouter();
   const notify = useToast();
@@ -49,6 +62,17 @@ export default function ProductEditor({
   const isNew = !initial.id;
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
   const category = categories.find((c) => c.id === draft.categoryId);
+  const isOffer = Boolean(category?.offers) || draft.isOffer;
+  // El producto que se está editando no puede sumarse a sí mismo.
+  const choices = useMemo(() => catalog.filter((p) => p.id !== initial.id), [catalog, initial.id]);
+  const choicesById = useMemo(() => new Map(choices.map((p) => [p.id, p])), [choices]);
+  const choiceGroups = useMemo(() => {
+    const groups = new Map<string, CatalogProduct[]>();
+    for (const product of choices) groups.set(product.category, [...(groups.get(product.category) ?? []), product]);
+    return groups;
+  }, [choices]);
+  const preview = previewProduct({ ...draft, isOffer });
+  const offer = resolveOffer(preview, choicesById);
 
   // Al editar un campo se borra su error (agregar o quitar filas borra los de toda la lista).
   const clearErrors = (prefix: string, patch: object) =>
@@ -64,6 +88,10 @@ export default function ProductEditor({
   const updateGroup = (index: number, patch: Partial<GroupDraft>) => {
     setDraft((d) => ({ ...d, optionGroups: d.optionGroups.map((g, i) => (i === index ? { ...g, ...patch } : g)) }));
     clearErrors(`optionGroups.${index}.`, patch);
+  };
+  const updateBundle = (index: number, patch: Partial<BundleDraft>) => {
+    setDraft((d) => ({ ...d, bundle: d.bundle.map((item, i) => (i === index ? { ...item, ...patch } : item)) }));
+    clearErrors(`bundle.${index}.`, patch);
   };
   const updateOption = (groupIndex: number, optionIndex: number, patch: Partial<OptionDraft>) => {
     setDraft((d) => ({
@@ -109,7 +137,7 @@ export default function ProductEditor({
           <Link href="/admin/menu" className="adm-back">
             <ArrowLeft aria-hidden /> Menú
           </Link>
-          <h1 className="adm-title">{isNew ? "Nuevo producto" : initial.name}</h1>
+          <h1 className="adm-title">{isNew ? (isOffer ? "Nueva oferta" : "Nuevo producto") : initial.name}</h1>
         </div>
       </header>
 
@@ -122,7 +150,7 @@ export default function ProductEditor({
                 className="adm-input"
                 value={draft.name}
                 maxLength={60}
-                placeholder="Ej: Milanesa napolitana"
+                placeholder={isOffer ? "Ej: Combo pareja" : "Ej: Milanesa napolitana"}
                 onChange={(e) => update({ name: e.target.value })}
               />
             </Field>
@@ -170,6 +198,19 @@ export default function ProductEditor({
                 </select>
               </Field>
             </div>
+            <div className="adm-switches">
+              <Switch
+                checked={isOffer}
+                disabled={Boolean(category?.offers)}
+                onChange={(on) => update({ isOffer: on })}
+                label="Es una oferta o promo"
+                description={
+                  category?.offers
+                    ? "Está en la categoría de ofertas."
+                    : "Puede estar en cualquier categoría: se puede destacar arriba del menú y armar con productos."
+                }
+              />
+            </div>
             {draft.subcategoryId === NEW_GROUP && (
               <Field label="Nombre del grupo nuevo" htmlFor="p-newgroup" error={errors.newGroupName}>
                 <input
@@ -184,11 +225,125 @@ export default function ProductEditor({
             )}
           </Panel>
 
-          <Panel title="Foto" description="Una buena foto vende más. Se achica sola antes de subirse.">
+          {isOffer && (
+            <Panel
+              title="Armador de oferta"
+              description="Sumá los productos del menú que incluye. El cliente ve el detalle y cuánto ahorra."
+            >
+              <div className="adm-rows">
+                {draft.bundle.map((item, index) => {
+                  const included = choicesById.get(item.productId);
+                  const rowError =
+                    errors[`bundle.${index}.productId`] ?? errors[`bundle.${index}.variantId`] ?? errors[`bundle.${index}.qty`];
+                  return (
+                    <div key={index} className="adm-row adm-row--bundle">
+                      <select
+                        className="adm-input adm-bundle-product"
+                        aria-label={`Producto ${index + 1} de la oferta`}
+                        value={item.productId}
+                        onChange={(e) =>
+                          updateBundle(index, {
+                            productId: e.target.value,
+                            variantId: choicesById.get(e.target.value)?.variants?.[0]?.id ?? "",
+                          })
+                        }
+                      >
+                        <option value="">Elegí un producto…</option>
+                        {[...choiceGroups].map(([name, products]) => (
+                          <optgroup key={name} label={name}>
+                            {products.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                      {included?.variants?.length ? (
+                        <select
+                          className="adm-input"
+                          aria-label={`Presentación de ${included.name}`}
+                          value={item.variantId}
+                          onChange={(e) => updateBundle(index, { variantId: e.target.value })}
+                        >
+                          {included.variants.map((v) => (
+                            <option key={v.id} value={v.id}>
+                              {v.name} · {formatMoney(v.price)}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="adm-bundle-price">
+                          {included?.price !== undefined ? formatMoney(included.price) : ""}
+                        </span>
+                      )}
+                      <span className="adm-unit adm-unit--before">
+                        <span aria-hidden>×</span>
+                        <input
+                          className="adm-input adm-input--qty"
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          max={20}
+                          aria-label={`Cantidad de ${included?.name ?? `el producto ${index + 1}`}`}
+                          value={item.qty}
+                          onChange={(e) => updateBundle(index, { qty: e.target.value })}
+                        />
+                      </span>
+                      <button
+                        type="button"
+                        className="adm-icon-btn"
+                        aria-label="Sacar de la oferta"
+                        onClick={() => update({ bundle: draft.bundle.filter((_, i) => i !== index) })}
+                      >
+                        <Trash3 />
+                      </button>
+                      {rowError && <p className="adm-error adm-row-error">{rowError}</p>}
+                    </div>
+                  );
+                })}
+                {errors.bundle && <p className="adm-error">{errors.bundle}</p>}
+                <button
+                  type="button"
+                  className="adm-btn adm-btn--dashed"
+                  disabled={draft.bundle.length >= 12}
+                  onClick={() => update({ bundle: [...draft.bundle, { productId: "", variantId: "", qty: "1" }] })}
+                >
+                  <PlusLg aria-hidden /> Sumar producto
+                </button>
+              </div>
+              {offer && (
+                <dl className="adm-offer-sum">
+                  <div>
+                    <dt>Por separado</dt>
+                    <dd>{formatMoney(offer.regularPrice)}</dd>
+                  </div>
+                  <div>
+                    <dt>Precio de la oferta</dt>
+                    <dd>{preview.price ? formatMoney(preview.price) : "Ponelo abajo"}</dd>
+                  </div>
+                  <div className={offer.savings > 0 && preview.price ? "is-good" : "is-bad"}>
+                    <dt>El cliente ahorra</dt>
+                    <dd>
+                      {offer.savings > 0 && preview.price
+                        ? `${formatMoney(offer.savings)} (${savingsPercent(offer)} %)`
+                        : "Nada todavía"}
+                    </dd>
+                  </div>
+                </dl>
+              )}
+            </Panel>
+          )}
+
+          <Panel
+            title="Foto (opcional)"
+            description="Mejor una foto real de tu producto que una de referencia. Si no tenés, dejalo sin foto: la tarjeta se ve bien igual."
+          >
             <ImageField value={draft.imageUrl} onChange={(imageUrl) => update({ imageUrl })} />
           </Panel>
 
-          <Panel title="Precio">
+          <Panel title={isOffer ? "Precio de la oferta" : "Precio"}>
+            {(!isOffer || draft.hasVariants) && (
             <div className="adm-segmented" role="radiogroup" aria-label="Tipo de precio">
               <button
                 type="button"
@@ -209,6 +364,7 @@ export default function ProductEditor({
                 Presentaciones
               </button>
             </div>
+            )}
             {draft.hasVariants ? (
               <div className="adm-rows">
                 <p className="adm-hint">Tamaños o porciones: el cliente elige una. Ej: Simple, Doble / Media docena, Docena.</p>
@@ -255,7 +411,7 @@ export default function ProductEditor({
                 </button>
               </div>
             ) : (
-              <Field label="Precio" htmlFor="p-price" error={errors.price}>
+              <Field label={isOffer ? "Precio de la oferta" : "Precio"} htmlFor="p-price" error={errors.price}>
                 <MoneyInput id="p-price" placeholder="0" value={draft.price} onChange={(price) => update({ price })} />
               </Field>
             )}
@@ -401,12 +557,14 @@ export default function ProductEditor({
                 label="Disponible"
                 description="Si lo apagás, aparece como agotado y no se puede pedir."
               />
-              <Switch
-                checked={draft.featured}
-                onChange={(featured) => update({ featured })}
-                label="Destacado"
-                description='Aparece arriba de todo, en "Lo más pedido".'
-              />
+              {isOffer && (
+                <Switch
+                  checked={draft.featured}
+                  onChange={(featured) => update({ featured })}
+                  label="Destacada"
+                  description='Aparece arriba de todo, en "Ofertas destacadas".'
+                />
+              )}
             </div>
           </Panel>
         </div>
@@ -416,7 +574,7 @@ export default function ProductEditor({
             <p className="adm-eyebrow">Así se ve en tu tienda</p>
             {/* Vista previa sin interacción: es la misma tarjeta que ve el cliente. */}
             <div inert className="adm-preview-card">
-              <ProductCard slug={slug} product={previewProduct(draft)} sectionLabel="" />
+              <ProductCard slug={slug} product={preview} sectionLabel="" offer={offer ?? undefined} isOffer={isOffer} />
             </div>
           </div>
         </aside>

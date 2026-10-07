@@ -1,6 +1,7 @@
 import "server-only";
 
 import { stores as seeds } from "@/data/stores";
+import { upgradeStore } from "@/lib/store-upgrade";
 import type { StoreSeed } from "@/lib/types";
 import { SAFE_NAME } from "@/lib/validation";
 import { dataPath, listJsonNames, readJson, withFileLock, writeJson } from "./storage";
@@ -19,7 +20,7 @@ export async function loadStore(slug: string): Promise<StoreSeed | null> {
   // El slug termina siendo un nombre de archivo: solo se aceptan letras, números y guiones.
   if (!SAFE_NAME.test(slug)) return null;
   const saved = await readJson<StoreSeed>(storeFile(slug));
-  if (saved) return saved;
+  if (saved) return upgradeStore(saved);
   const seed = seeds.find((store) => store.business.slug === slug);
   return seed ? structuredClone(seed) : null;
 }

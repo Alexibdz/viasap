@@ -1,13 +1,18 @@
 import type { Metadata, Viewport } from "next";
+import { Anton, Archivo } from "next/font/google";
 import { notFound } from "next/navigation";
 import CartPill from "@/components/store/CartPill";
 import { StoreProvider } from "@/components/store/StoreProvider";
 import { StoreUiProvider } from "@/components/store/StoreUi";
 import { ToastProvider } from "@/components/store/ToastProvider";
 import { getBusiness, getMenu, listBusinesses } from "@/lib/data";
-import { buildSearchIndex } from "@/lib/menu";
+import { buildSearchIndex, categoryLabel } from "@/lib/menu";
 import { NavigationTracker } from "@/lib/navigation";
 import { themeCss } from "@/lib/theme";
+
+// Fuentes de la portada de la tienda ("Tipográfico"): Anton para el nombre y la cinta, Archivo para el resto.
+const heroDisplay = Anton({ weight: "400", subsets: ["latin"], variable: "--font-hero-display" });
+const heroText = Archivo({ weight: ["500", "600", "700", "800"], subsets: ["latin"], variable: "--font-hero-text" });
 
 export async function generateStaticParams() {
   const businesses = await listBusinesses();
@@ -50,11 +55,13 @@ export default async function StoreLayout({ children, modal, params }: LayoutPro
       <ToastProvider>
         <StoreUiProvider
           searchIndex={buildSearchIndex(menu)}
-          categories={menu.map(({ id, name }) => ({ id, name }))}
+          categories={menu.map((category) => ({ id: category.id, name: categoryLabel(category) }))}
         >
           <NavigationTracker />
-          {children}
-          {modal}
+          <div className={`${heroDisplay.variable} ${heroText.variable}`}>
+            {children}
+            {modal}
+          </div>
           <CartPill />
         </StoreUiProvider>
       </ToastProvider>

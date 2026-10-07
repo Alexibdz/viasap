@@ -1,8 +1,9 @@
 import { onlyDigits } from "./format";
-import { quoteShipping } from "./geo";
 import { getOpenStatus } from "./hours";
 import { findProduct } from "./menu";
+import { offerIncludesText } from "./offers";
 import { couponDiscount, hasNamedVariants, itemTotal, productVariants } from "./pricing";
+import { quoteShipping } from "./shipping";
 import type {
   BuildingType,
   CartItem,
@@ -38,6 +39,8 @@ export interface OrderInput {
         method: "delivery";
         address: string;
         location: GeoPoint | null;
+        /** Zona de envío que eligió el cliente. */
+        zoneId?: string;
         buildingType: BuildingType;
         floor?: string;
         apartment?: string;
@@ -108,7 +111,8 @@ function priceLine(store: StoreSeed, line: unknown, key: string): CartItem | str
     }
   }
 
-  const notes = cleanText(line.notes, 150);
+  // En las categorías sin aclaraciones (bebidas) no se guarda lo que mande el navegador.
+  const notes = context.allowsNotes ? cleanText(line.notes, 150) : "";
   return {
     key,
     productId: product.id,
@@ -119,6 +123,7 @@ function priceLine(store: StoreSeed, line: unknown, key: string): CartItem | str
     variantName: named ? variant.name : undefined,
     unitPrice: variant.price,
     options,
+    includes: context.offer ? offerIncludesText(context.offer.lines) : undefined,
     notes: notes || undefined,
     qty,
   };
@@ -170,9 +175,8 @@ export function priceOrder(store: StoreSeed, input: unknown, now: Date): PricedO
     const address = cleanText(requested.address, 200);
     if (address.length < 3) return fail("Falta la dirección de entrega.");
     const location = parseLocation(requested.location);
-    const quote = quoteShipping(business.delivery, business.address, location);
-    if (quote.status === "pending") return fail("Falta marcar la ubicación de entrega.");
-    if (quote.status === "out-of-range") return fail("La dirección está fuera de la zona de envío.");
+    const quote = quoteShipping(business.delivery, typeof requested.zoneId === "string" ? requested.zoneId : null);
+    if (quote.status === "pending") return fail("Elegí la zona de envío.");
     if (business.delivery.minOrder && subtotal < business.delivery.minOrder) {
       return fail("El pedido no llega al mínimo para envíos.");
     }
@@ -186,6 +190,7 @@ export function priceOrder(store: StoreSeed, input: unknown, now: Date): PricedO
       floor: buildingType === "apartment" ? cleanText(requested.floor, 10) || undefined : undefined,
       apartment: buildingType === "apartment" ? cleanText(requested.apartment, 10) || undefined : undefined,
       references: cleanText(requested.references, 150) || undefined,
+      zone: quote.status === "ok" ? quote.zone.name : undefined,
       cost: quote.status === "ok" ? quote.cost : null,
     };
   } else {

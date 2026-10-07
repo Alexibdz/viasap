@@ -7,7 +7,10 @@ import { deleteCategory, saveCategory } from "@/app/admin/actions";
 import { useToast } from "@/components/store/ToastProvider";
 import { withoutErrors, type CategoryDraft, type FieldErrors } from "@/lib/admin-forms";
 import ImageField from "./ImageField";
-import { Field } from "./ui";
+import { Field, Switch } from "./ui";
+
+/** Los más comunes en una rotisería, para elegir con un toque. */
+const EMOJI_PICKS = ["🍕", "🍔", "🥖", "🥟", "🍗", "🍳", "🥩", "🍟", "🥗", "🍝", "🍮", "🔥"];
 
 function CategoryForm({ initial, onDone }: { initial: CategoryDraft; onDone: () => void }) {
   const notify = useToast();
@@ -58,19 +61,58 @@ function CategoryForm({ initial, onDone }: { initial: CategoryDraft; onDone: () 
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="adm-modal-body">
-        <Field label="Nombre" htmlFor="cat-name" error={errors.name}>
-          <input
-            id="cat-name"
-            className="adm-input"
-            value={draft.name}
-            maxLength={40}
-            placeholder="Ej: Empanadas"
-            onChange={(e) => update({ name: e.target.value })}
-          />
-        </Field>
+        <div className="adm-grid-emoji">
+          <Field label="Emoji" htmlFor="cat-emoji" error={errors.emoji}>
+            <input
+              id="cat-emoji"
+              className="adm-input adm-input--emoji"
+              value={draft.emoji}
+              maxLength={24}
+              placeholder="🥟"
+              onChange={(e) => update({ emoji: e.target.value })}
+            />
+          </Field>
+          <Field label="Nombre" htmlFor="cat-name" error={errors.name}>
+            <input
+              id="cat-name"
+              className="adm-input"
+              value={draft.name}
+              maxLength={40}
+              placeholder="Ej: Empanadas"
+              onChange={(e) => update({ name: e.target.value })}
+            />
+          </Field>
+        </div>
+        <div className="adm-chips adm-emoji-picks" aria-label="Emojis sugeridos">
+          {EMOJI_PICKS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              className={`adm-chip${draft.emoji === emoji ? " is-on" : ""}`}
+              aria-label={`Usar ${emoji}`}
+              onClick={() => update({ emoji: draft.emoji === emoji ? "" : emoji })}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
         <Field label="Foto de la categoría" hint="Se usa en el buscador y al compartir.">
           <ImageField value={draft.imageUrl} onChange={(imageUrl) => update({ imageUrl })} shape="wide" />
         </Field>
+        <div className="adm-switches">
+          <Switch
+            checked={draft.offers}
+            onChange={(offers) => update({ offers })}
+            label="Categoría de ofertas"
+            description="Sus productos se arman con el armador de ofertas: combinás productos del menú con un precio especial."
+          />
+          <Switch
+            checked={draft.hideNotes}
+            onChange={(hideNotes) => update({ hideNotes })}
+            label="Sin aclaraciones"
+            description="El cliente no ve el campo «¿Alguna aclaración?» en estos productos. Ideal para bebidas."
+          />
+        </div>
         <Field
           label="Grupos"
           hint="Opcional: separan la categoría en subtítulos (por ejemplo, De carne / De pollo). Con un solo grupo no se muestra ningún subtítulo."

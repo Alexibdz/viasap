@@ -44,6 +44,7 @@ export default function StepCart({ summary, coupon, onCouponChange }: StepCartPr
                   </span>
                   <strong className="line-item-price">{formatMoney(itemTotal(item))}</strong>
                 </div>
+                {item.includes && <p className="line-item-meta">Incluye: {item.includes}</p>}
                 {item.options.length > 0 && (
                   <p className="line-item-meta">
                     {item.options.map((o) => `${o.qty > 1 ? `${o.qty}x ` : ""}${o.name}`).join(" · ")}

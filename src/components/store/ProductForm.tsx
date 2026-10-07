@@ -5,7 +5,8 @@ import { useState } from "react";
 import { Check2, XLg } from "react-bootstrap-icons";
 import { createId } from "@/lib/browser";
 import { formatMoney } from "@/lib/format";
-import { describeGroupRule, hasNamedVariants, optionsTotal, priceFrom, productVariants } from "@/lib/pricing";
+import { offerIncludesText } from "@/lib/offers";
+import { describeGroupRule, hasNamedVariants, optionsTotal, priceFrom, productVariants, showsPriceFrom } from "@/lib/pricing";
 import type { CartOption, Option, OptionGroup, ProductContext } from "@/lib/types";
 import QtyStepper from "./QtyStepper";
 import { useCart } from "./StoreProvider";
@@ -30,7 +31,7 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ context, layout, onAdded, onClose }: ProductFormProps) {
-  const { product, sectionLabel } = context;
+  const { product, sectionLabel, offer, allowsNotes } = context;
   const { add } = useCart();
   const notify = useToast();
 
@@ -98,7 +99,8 @@ export default function ProductForm({ context, layout, onAdded, onClose }: Produ
         variantName: named ? variant.name : undefined,
         unitPrice: variant.price,
         options: chosenOptions,
-        notes: notes.trim() || undefined,
+        includes: offer ? offerIncludesText(offer.lines) : undefined,
+        notes: (allowsNotes && notes.trim()) || undefined,
         qty,
       },
     ]);
@@ -141,10 +143,30 @@ export default function ProductForm({ context, layout, onAdded, onClose }: Produ
           </Title>
           {product.description && <p className="pf-desc">{product.description}</p>}
           <p className="pf-price">
-            {named && <small>desde</small>}
+            {showsPriceFrom(product) && <small>desde</small>}
             {formatMoney(named ? priceFrom(product) : variant.price)}
           </p>
           {soldOut && <p className="pf-soldout">Este producto está agotado por ahora.</p>}
+
+          {offer && (
+            <section className="pf-offer" aria-labelledby="pf-offer-title">
+              <h3 id="pf-offer-title" className="pf-group-name">
+                Incluye
+              </h3>
+              <ul className="pf-offer-lines">
+                {offer.lines.map((line, index) => (
+                  <li key={index}>
+                    <strong>{line.qty}×</strong> {line.name}
+                  </li>
+                ))}
+              </ul>
+              {offer.savings > 0 && (
+                <p className="pf-offer-save">
+                  Por separado <s>{formatMoney(offer.regularPrice)}</s> · Ahorrás {formatMoney(offer.savings)}
+                </p>
+              )}
+            </section>
+          )}
 
           {named && (
             <fieldset className="pf-group" disabled={soldOut}>
@@ -246,26 +268,28 @@ export default function ProductForm({ context, layout, onAdded, onClose }: Produ
             );
           })}
 
-          <div className="pf-notes">
-            <div className="pf-notes-head">
-              <label htmlFor="aclaraciones" className="pf-group-name">
-                ¿Alguna aclaración?
-              </label>
-              <span className="pf-counter">
-                {notes.length}/{NOTES_MAX}
-              </span>
+          {allowsNotes && (
+            <div className="pf-notes">
+              <div className="pf-notes-head">
+                <label htmlFor="aclaraciones" className="pf-group-name">
+                  ¿Alguna aclaración?
+                </label>
+                <span className="pf-counter">
+                  {notes.length}/{NOTES_MAX}
+                </span>
+              </div>
+              <textarea
+                id="aclaraciones"
+                className="input"
+                rows={2}
+                maxLength={NOTES_MAX}
+                value={notes}
+                disabled={soldOut}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Ej: sin sal, la carne bien cocida…"
+              />
             </div>
-            <textarea
-              id="aclaraciones"
-              className="input"
-              rows={2}
-              maxLength={NOTES_MAX}
-              value={notes}
-              disabled={soldOut}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ej: sin sal, la carne bien cocida…"
-            />
-          </div>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,9 @@
 import { toWhatsAppNumber } from "./phone";
+import { allProducts } from "./menu";
+import { offersIncluding } from "./offers";
 import type {
   Business,
+  BundleItem,
   Category,
   Coupon,
   DeliverySettings,
@@ -70,6 +73,10 @@ export interface ProductDraft {
     max: string;
     options: { id: string | null; name: string; price: string; maxQty: string }[];
   }[];
+  /** Es una oferta (en cualquier categoría): habilita el armador y "destacada". */
+  isOffer: boolean;
+  /** Armador de ofertas: productos del menú que incluye. */
+  bundle: { productId: string; variantId: string; qty: string }[];
   soldOut: boolean;
   featured: boolean;
 }
@@ -191,8 +198,36 @@ export function buildProduct(draft: unknown, menu: Category[]): FormResult<Produ
     return result;
   });
   if (optionGroups.length) product.optionGroups = optionGroups;
+
+  // En la categoría de ofertas todo es oferta; en las demás, si se marcó. Si no es oferta,
+  // no se guarda lo que haya quedado en el armador.
+  const isOffer = field(draft, "isOffer") === true || category?.kind === "offers";
+  const bundleRows = isOffer ? list(field(draft, "bundle")) : [];
+  if (bundleRows.length > 12) errors.bundle = "Hasta 12 productos por oferta.";
+  const catalog = allProducts(menu);
+  const bundle: BundleItem[] = bundleRows.slice(0, 12).map((row, i) => {
+    const included = catalog.find((p) => p.id === field(row, "productId"));
+    if (!included) errors[`bundle.${i}.productId`] = "Elegí un producto.";
+    else if (included.id === id) errors[`bundle.${i}.productId`] = "Una oferta no puede incluirse a sí misma.";
+    else if (included.bundle?.length || included.isOffer) errors[`bundle.${i}.productId`] = "No se puede incluir otra oferta.";
+    const qty = toInt(field(row, "qty"), 1, 20);
+    if (qty === null) errors[`bundle.${i}.qty`] = "Entre 1 y 20.";
+    const item: BundleItem = { productId: included?.id ?? "", qty: qty ?? 1 };
+    if (included?.variants?.length) {
+      const variant = included.variants.find((v) => v.id === field(row, "variantId"));
+      if (variant) item.variantId = variant.id;
+      else errors[`bundle.${i}.variantId`] = "Elegí la presentación.";
+    }
+    return item;
+  });
+  if (isOffer && offersIncluding(catalog, id).length) {
+    errors.bundle = "Este producto está incluido en otra oferta: no puede ser una oferta.";
+  }
+  if (isOffer) product.isOffer = true;
+  if (bundle.length) product.bundle = bundle;
   if (field(draft, "soldOut") === true) product.soldOut = true;
-  if (field(draft, "featured") === true) product.featured = true;
+  // Arriba del menú solo se destacan ofertas.
+  if (isOffer && field(draft, "featured") === true) product.featured = true;
 
   return done({ product, categoryId: category?.id ?? "", group }, errors);
 }
@@ -277,7 +312,25 @@ export interface CategoryDraft {
   id: string | null;
   name: string;
   imageUrl: string;
+  /** Emoji que decora la categoría en la tienda (🍕). Vacío = sin emoji. */
+  emoji: string;
+  /** Categoría de ofertas: sus productos se arman con el armador de ofertas. */
+  offers: boolean;
+  /** Sin el campo "¿Alguna aclaración?" (bebidas). */
+  hideNotes: boolean;
   groups: { id: string | null; name: string }[];
+}
+
+const EMOJI_CHARS = /^[\p{Extended_Pictographic}\p{Emoji_Component}\u200d\ufe0f]+$/u;
+
+/** Uno o dos emojis ("🍕", "🍔🍟"). Vacío = sin emoji; null si no es un emoji. */
+export function cleanEmoji(value: unknown): string | null {
+  const emoji = cleanText(value, 24).replace(/\s/g, "");
+  if (!emoji) return "";
+  // Emoji_Component incluye dígitos, # y *: se exige algo dibujado y nada de ASCII.
+  const valid = EMOJI_CHARS.test(emoji) && /\p{Extended_Pictographic}/u.test(emoji) && !/[\x00-\x7f]/.test(emoji);
+  const graphemes = [...new Intl.Segmenter("es").segment(emoji)].length;
+  return valid && graphemes <= 2 ? emoji : null;
 }
 
 /** Crea o actualiza una categoría. Un grupo con productos no se puede borrar. */
@@ -308,17 +361,28 @@ export function applyCategory(menu: Category[], draft: unknown): FormResult<stri
   for (const removed of existing?.subcategories.filter((s) => !taken.has(s.id)) ?? []) {
     if (removed.products.length) errors.groups = `"${removed.name}" tiene productos: movelos antes de borrar el grupo.`;
   }
+  const flags: Pick<Category, "emoji" | "kind" | "hideNotes"> = {};
+  const emoji = cleanEmoji(field(draft, "emoji"));
+  if (emoji === null) errors.emoji = "Poné un emoji (ej: 🍕) o dejalo vacío.";
+  else if (emoji) flags.emoji = emoji;
+  if (field(draft, "offers") === true) flags.kind = "offers";
+  if (field(draft, "hideNotes") === true) flags.hideNotes = true;
+
   if (Object.keys(errors).length) return { ok: false, errors };
 
   if (existing) {
     existing.name = name;
     if (imageUrl) existing.imageUrl = imageUrl;
     else delete existing.imageUrl;
+    delete existing.emoji;
+    delete existing.kind;
+    delete existing.hideNotes;
+    Object.assign(existing, flags);
     existing.subcategories = groups;
     return { ok: true, value: existing.id };
   }
   const id = uniqueId(name, menu.map((c) => c.id), "categoria");
-  menu.push({ id, name, ...(imageUrl ? { imageUrl } : {}), subcategories: groups });
+  menu.push({ id, name, ...(imageUrl ? { imageUrl } : {}), ...flags, subcategories: groups });
   return { ok: true, value: id };
 }
 
@@ -336,11 +400,12 @@ export function removeCategory(menu: Category[], categoryId: string): FormResult
 
 export function buildStoreInfo(
   input: unknown,
-): FormResult<Pick<Business, "name" | "description" | "whatsapp" | "instagram" | "address">> {
+): FormResult<Pick<Business, "name" | "description" | "highlight" | "whatsapp" | "instagram" | "address">> {
   const errors: FieldErrors = {};
   const name = cleanText(field(input, "name"), 60);
   if (name.length < 2) errors.name = "Escribí el nombre del local.";
   const description = cleanText(field(input, "description"), 200);
+  const highlight = cleanText(field(input, "highlight"), 80);
   const whatsapp = toWhatsAppNumber(cleanText(field(input, "whatsapp"), 30));
   if (!/^\d{10,15}$/.test(whatsapp)) errors.whatsapp = "Revisá el número (con característica, sin 0 ni 15).";
   const instagram = cleanText(field(input, "instagram"), 31).replace(/^@/, "");
@@ -361,6 +426,7 @@ export function buildStoreInfo(
     {
       name,
       description: description || undefined,
+      highlight: highlight || undefined,
       whatsapp,
       instagram: instagram || undefined,
       address: { street, city, province, lat: validPoint ? lat : 0, lng: validPoint ? lng : 0 },
@@ -404,18 +470,18 @@ export function buildDelivery(input: unknown): FormResult<DeliverySettings> {
   const pickup = field(input, "pickup") === true;
   const delivery = field(input, "delivery") === true;
   if (!pickup && !delivery) errors.methods = "Activá al menos una forma de entrega.";
-  const zones = list(field(input, "zones"))
-    .slice(0, 8)
-    .map((zone, i) => {
-      const rawKm = Number(field(zone, "upToKm"));
-      const upToKm = Math.round(rawKm * 10) / 10;
-      const cost = toAmount(field(zone, "cost"));
-      if (!Number.isFinite(rawKm) || upToKm < 0.1 || upToKm > 50) errors[`zones.${i}.upToKm`] = "Entre 0,1 y 50 km.";
-      if (cost === null) errors[`zones.${i}.cost`] = "Poné el costo (0 si es gratis).";
-      return { upToKm, cost: cost ?? 0 };
-    })
-    .sort((a, b) => a.upToKm - b.upToKm);
-  if (new Set(zones.map((z) => z.upToKm)).size !== zones.length) errors.zones = "Hay dos zonas con la misma distancia.";
+  const rows = list(field(input, "zones"));
+  if (rows.length > 8) errors.zones = "Hasta 8 zonas.";
+  const taken = new Set<string>();
+  const zones = rows.slice(0, 8).map((zone, i) => {
+    const name = cleanText(field(zone, "name"), 40);
+    const cost = toAmount(field(zone, "cost"));
+    if (name.length < 2) errors[`zones.${i}.name`] = "Poné el nombre de la zona.";
+    if (cost === null) errors[`zones.${i}.cost`] = "Poné el costo (0 si es gratis).";
+    return { id: keepId(field(zone, "id"), name, taken, "zona"), name, cost: cost ?? 0 };
+  });
+  const names = zones.map((z) => z.name.toLowerCase());
+  if (new Set(names).size !== names.length) errors.zones = "Hay dos zonas con el mismo nombre.";
   const rawMin = field(input, "minOrder");
   const minOrder = rawMin === "" || rawMin === null || rawMin === undefined ? 0 : toAmount(rawMin);
   if (minOrder === null) errors.minOrder = "Monto inválido.";
@@ -498,6 +564,8 @@ export function emptyProductDraft(menu: Category[], categoryId?: string): Produc
       { id: null, name: "", price: "" },
     ],
     optionGroups: [],
+    isOffer: category?.kind === "offers",
+    bundle: [],
     soldOut: false,
     featured: false,
   };
@@ -535,6 +603,12 @@ export function toProductDraft(menu: Category[], productId: string): ProductDraf
         maxQty: o.maxQty && o.maxQty > 1 ? String(o.maxQty) : "",
       })),
     })),
+    isOffer: Boolean(product.isOffer || product.bundle?.length || current.category.kind === "offers"),
+    bundle: (product.bundle ?? []).map((item) => ({
+      productId: item.productId,
+      variantId: item.variantId ?? "",
+      qty: String(item.qty),
+    })),
     soldOut: Boolean(product.soldOut),
     featured: Boolean(product.featured),
   };
@@ -548,7 +622,12 @@ export function previewProduct(draft: ProductDraft): Product {
     description: draft.description.trim() || undefined,
     imageUrl: cleanImageUrl(draft.imageUrl),
     soldOut: draft.soldOut || undefined,
+    isOffer: draft.isOffer || undefined,
   };
+  const bundle = (draft.isOffer ? draft.bundle : [])
+    .map((item) => ({ productId: item.productId, variantId: item.variantId || undefined, qty: toInt(item.qty, 1, 20) ?? 1 }))
+    .filter((item) => item.productId);
+  if (bundle.length) product.bundle = bundle;
   if (draft.hasVariants) {
     const variants = draft.variants
       .map((v, i) => ({ id: `v${i}`, name: v.name || "—", price: toAmount(v.price) ?? 0 }))
@@ -565,6 +644,9 @@ export function toCategoryDraft(category: Category): CategoryDraft {
     id: category.id,
     name: category.name,
     imageUrl: category.imageUrl ?? "",
+    emoji: category.emoji ?? "",
+    offers: category.kind === "offers",
+    hideNotes: Boolean(category.hideNotes),
     groups: category.subcategories.map((s) => ({ id: s.id, name: s.name })),
   };
 }

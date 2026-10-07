@@ -11,6 +11,11 @@ export function hasNamedVariants(product: Product): boolean {
   return Boolean(product.variants?.length);
 }
 
+/** "desde $X": solo si las presentaciones tienen precios distintos (Coca o Sprite al mismo precio, no). */
+export function showsPriceFrom(product: Product): boolean {
+  return new Set(productVariants(product).map((v) => v.price)).size > 1;
+}
+
 export function priceFrom(product: Product): number {
   return Math.min(...productVariants(product).map((v) => v.price));
 }

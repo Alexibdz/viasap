@@ -2,12 +2,13 @@
 
 import { createContext, use, useMemo, useState, type ReactNode } from "react";
 import type { SearchEntry } from "@/lib/types";
-import InfoSheet from "./InfoSheet";
+import InfoSheet, { type InfoSection } from "./InfoSheet";
 import SearchSheet from "./SearchSheet";
 
 interface StoreUi {
   openSearch: () => void;
-  openInfo: () => void;
+  /** Abre la hoja de horarios o la de envíos. */
+  openInfo: (section: InfoSection) => void;
 }
 
 const StoreUiContext = createContext<StoreUi | null>(null);
@@ -18,11 +19,21 @@ interface StoreUiProviderProps {
   categories: { id: string; name: string }[];
 }
 
-/** Buscador e información del local: se abren desde cualquier parte de la tienda. */
+/** Buscador, horarios y envíos: se abren desde cualquier parte de la tienda. */
 export function StoreUiProvider({ children, searchIndex, categories }: StoreUiProviderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
-  const value = useMemo(() => ({ openSearch: () => setSearchOpen(true), openInfo: () => setInfoOpen(true) }), []);
+  const [infoSection, setInfoSection] = useState<InfoSection>("hours");
+  const value = useMemo(
+    () => ({
+      openSearch: () => setSearchOpen(true),
+      openInfo: (section: InfoSection) => {
+        setInfoSection(section);
+        setInfoOpen(true);
+      },
+    }),
+    [],
+  );
 
   return (
     <StoreUiContext value={value}>
@@ -33,7 +44,7 @@ export function StoreUiProvider({ children, searchIndex, categories }: StoreUiPr
         index={searchIndex}
         categories={categories}
       />
-      <InfoSheet show={infoOpen} onHide={() => setInfoOpen(false)} />
+      <InfoSheet show={infoOpen} onHide={() => setInfoOpen(false)} section={infoSection} />
     </StoreUiContext>
   );
 }

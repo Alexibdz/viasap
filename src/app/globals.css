@@ -542,265 +542,294 @@ h3 {
   margin: 0 auto;
 }
 
-.hero-cover {
-  position: relative;
-  height: 210px;
-  overflow: hidden;
-  background: var(--paper-deep);
+/* Portada "Tipográfico": nombre grande, logo en un recuadro, cinta animada con el
+   local cerrado y etiquetas que abren horarios, envíos y el mapa. Colores propios
+   de la portada (no cambian con la tienda); las fuentes salen de app/[slug]/layout.tsx. */
+.hero {
+  --hero-paper: #f3ead8;
+  --hero-ink: #1b130b;
+  --hero-yellow: #f2b631;
+  --hero-red: #d63a1f;
+  --hero-green: #2f8a4c;
+  --hero-muted: #6b5a48;
+  --hero-neutral: #e6d9c0;
+  --hero-photo-bg: #2a211a;
+  --hero-title-max: 54px;
+
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--hero-paper);
+  color: var(--hero-ink);
+  font-family: var(--font-hero-text), var(--bs-body-font-family);
 }
 
-.hero-cover img {
-  object-fit: cover;
-}
-
-.hero-cover::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(25, 23, 20, 0.3) 0%, rgba(25, 23, 20, 0) 35%);
-  pointer-events: none;
-}
-
-.hero-cover-actions {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 1;
+.hero-top {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px 0;
 }
 
-.hero-body {
-  position: relative;
-  margin: -46px 12px 0;
-  padding: 56px 18px 18px;
-  border-radius: var(--r-lg);
-  background: var(--card);
-  box-shadow: var(--shadow-1);
-  text-align: center;
+.hero-share {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--hero-ink);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--hero-ink);
 }
 
-.hero-logo {
-  position: absolute;
-  top: -42px;
-  left: 50%;
-  border: 4px solid var(--card);
-  border-radius: 26px;
-  background: var(--card);
-  box-shadow: var(--shadow-1);
-  transform: translateX(-50%);
+/* Buscar y compartir van juntos a la derecha. */
+.hero-search {
+  margin-left: auto;
+}
+
+.hero-search + .hero-share {
+  margin-left: -4px;
+}
+
+.hero-share svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.hero-share:hover {
+  background: var(--hero-yellow);
+}
+
+.hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px;
+  gap: 14px;
+  align-items: end;
+  padding: 16px 18px 0;
+}
+
+/* El título se achica según su renglón más largo (--hero-chars) para entrar siempre. */
+.hero-title-box {
+  container-type: inline-size;
+  min-width: 0;
 }
 
 .hero-title {
-  margin: 0 0 6px;
-  font-size: 1.8rem;
-  font-weight: 800;
-  line-height: 1.08;
+  margin: 0;
+  font-family: var(--font-hero-display), Impact, "Arial Narrow", sans-serif;
+  font-size: min(var(--hero-title-max), calc((100cqi - 12px) / (var(--hero-chars) * 0.5)));
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.9;
+  text-transform: uppercase;
+  /* Último recurso si una palabra igual no entra: se corta antes que tapar el logo. */
+  overflow-wrap: anywhere;
+}
+
+.hero-mark {
+  display: inline-block;
+  padding: 4px 6px 0;
+  border-radius: 8px;
+  background: var(--hero-yellow);
+  line-height: 0.9;
+}
+
+.hero-photo {
+  position: relative;
+  height: 168px;
+  overflow: hidden;
+  border: 2px solid var(--hero-ink);
+  border-radius: 22px;
+  background: var(--hero-photo-bg);
+}
+
+/* Es el logo: entero, sin recortar (contain), sobre el fondo oscuro del recuadro. */
+.hero-photo img {
+  padding: 8px;
+  object-fit: contain;
+}
+
+.hero-ticker {
+  display: flex;
+  align-items: center;
+  height: 46px;
+  margin: 18px 18px 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--hero-red);
+  color: var(--hero-paper);
+}
+
+.hero-ticker-track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  font-family: var(--font-hero-display), Impact, sans-serif;
+  font-size: 22px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: hero-marquee 18s linear infinite;
+}
+
+.hero-ticker-track > span:nth-child(even) {
+  opacity: 0.7;
+}
+
+@keyframes hero-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 8px));
+  }
+}
+
+/* El reset global de "menos movimiento" la dejaría a mitad de camino: acá queda quieta. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-ticker-track {
+    padding-left: 18px;
+    animation: none !important;
+  }
+}
+
+.hero-body {
+  padding: 16px 18px 24px;
 }
 
 .hero-desc {
-  max-width: 46ch;
-  margin: 0 auto 12px;
-  color: var(--ink-2);
-  font-size: 0.95rem;
-}
-
-.hero-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px 16px;
-}
-
-.hero-facts {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px 16px;
-  margin: 14px 0 0;
-  padding: 14px 0 0;
-  border-top: 1px dashed var(--line-strong);
-  color: var(--ink-2);
-  font-size: 0.85rem;
+  margin: 0;
+  font-size: 17px;
   font-weight: 600;
-  list-style: none;
+  line-height: 1.4;
+  text-wrap: pretty;
 }
 
-.hero-facts li {
+.hero-desc mark {
+  padding: 0 4px;
+  background: var(--hero-yellow);
+  color: inherit;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.hero-tag {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.hero-facts svg {
-  color: var(--brand);
-}
-
-@media (min-width: 760px) {
-  .storefront {
-    padding-top: 20px;
-  }
-
-  .hero-cover {
-    height: 260px;
-    border-radius: var(--r-lg);
-  }
-
-  .hero-body {
-    margin: -56px 28px 0;
-  }
-}
-
-.status-pill {
-  display: inline-flex;
+  box-sizing: border-box;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  border: 0;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 2px solid var(--hero-ink);
   border-radius: 999px;
-  background: var(--paper-deep);
-  color: var(--ink-2);
-  font-size: 0.85rem;
-  font-weight: 800;
+  background: transparent;
+  color: var(--hero-ink);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
 }
 
-.status-pill-dot {
+a.hero-tag:hover,
+button.hero-tag:hover {
+  background: var(--hero-yellow);
+  color: var(--hero-ink);
+}
+
+.hero-tag:focus-visible,
+.hero-share:focus-visible {
+  outline: 3px solid var(--hero-ink);
+  outline-offset: 2px;
+}
+
+.hero-tag--static {
+  border-color: transparent;
+  background: var(--hero-neutral);
+}
+
+.hero-tag-label {
+  color: var(--hero-muted);
+  font-weight: 500;
+}
+
+.hero-tag-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+
+.hero-tag-icon--pin {
+  stroke-width: 2.4;
+}
+
+/* Punto del horario: gris hasta saber la hora, rojo cerrado, verde abierto. */
+.hero-tag-dot {
+  flex: none;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--muted);
+  background: var(--hero-muted);
 }
 
-.status-pill.is-open {
-  background: var(--ok-wash);
-  color: var(--ok);
+.hero[data-open="false"] .hero-tag-dot {
+  background: var(--hero-red);
 }
 
-.status-pill.is-open .status-pill-dot {
-  background: var(--ok);
-  animation: pulse 2s infinite;
+.hero[data-open="true"] .hero-tag-dot {
+  background: var(--hero-green);
+  box-shadow: 0 0 0 3px rgba(47, 138, 76, 0.2);
 }
 
-.status-pill.is-closed {
-  background: var(--danger-wash);
-  color: var(--danger);
+@media (min-width: 520px) {
+  .hero {
+    margin-top: 16px;
+    border-radius: var(--r-lg);
+  }
 }
 
-.status-pill.is-closed .status-pill-dot {
-  background: var(--danger);
-}
+@media (min-width: 760px) {
+  .hero {
+    --hero-title-max: 72px;
 
-.closed-notice {
-  display: flex;
-  gap: 12px;
-  margin-top: 14px;
-  padding: 12px 14px;
-  border-radius: var(--r-sm);
-  background: #24211d;
-  color: #f3efe8;
-  font-size: 0.88rem;
-  text-align: left;
-}
+    max-width: none;
+    margin-top: 20px;
+  }
 
-.closed-notice svg {
-  color: var(--accent);
-}
+  .hero-main {
+    grid-template-columns: minmax(0, 1fr) 168px;
+  }
 
-.closed-notice strong {
-  display: block;
-  font-size: 0.95rem;
-}
-
-.closed-notice p {
-  margin: 2px 0 0;
-  color: #cfc8bd;
+  .hero-photo {
+    height: 210px;
+  }
 }
 
 /* ==========================================================================
-   Tienda: pestañas y menú
+   Tienda: menú
    ========================================================================== */
-.menu-nav {
-  position: sticky;
-  top: 0;
-  z-index: 1020;
-  margin-top: 12px;
-  background: var(--paper);
-  transition:
-    box-shadow 0.2s,
-    background 0.2s;
-}
-
-.menu-nav.is-stuck {
-  background: rgba(246, 242, 236, 0.94);
-  box-shadow: 0 8px 20px rgba(25, 23, 20, 0.08);
-  backdrop-filter: saturate(1.4) blur(10px);
-}
-
-.menu-nav-inner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-}
-
-.menu-tabs {
-  display: flex;
-  flex: 1;
-  gap: 4px;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.menu-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.menu-tab {
-  flex-shrink: 0;
-  padding: 8px 14px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-2);
-  font-size: 0.92rem;
-  font-weight: 800;
-  white-space: nowrap;
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-
-.menu-tab:hover {
-  background: var(--paper-deep);
-}
-
-.menu-tab.is-active {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.menu-nav-search {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--line-strong);
-  border-radius: 50%;
-  background: var(--card);
-  color: var(--ink);
-}
-
 .menu {
   padding: 0 12px 140px;
 }
 
+/* "Lo más pedido" */
 .menu-section {
   padding-top: 22px;
-  scroll-margin-top: 62px;
+  scroll-margin-top: 12px;
 }
 
 .menu-section-head {
@@ -820,10 +849,100 @@ h3 {
   font-weight: 800;
 }
 
-.menu-section-count {
+/* Categorías desplegables: la barra abre y cierra los productos y queda fija arriba
+   mientras se recorre una categoría abierta. */
+.menu-categories {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.menu-category {
+  scroll-margin-top: 12px;
+}
+
+.menu-category-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 66px;
+  padding: 10px 16px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--card);
+  cursor: pointer;
+  list-style: none;
+  transition: box-shadow 0.2s;
+}
+
+.menu-category-head::-webkit-details-marker {
+  display: none;
+}
+
+.menu-category-head:hover {
+  border-color: var(--brand-line);
+}
+
+.menu-category-head:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.menu-category[open] > .menu-category-head {
+  box-shadow: var(--shadow-1);
+}
+
+.menu-category-emoji {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--brand);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.menu-category-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.menu-category-name {
+  font-family: var(--font-display), var(--bs-body-font-family);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.menu-category-count {
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
+}
+
+.menu-category-chevron {
+  flex-shrink: 0;
+  color: var(--ink-2);
+  transition: transform 0.2s var(--ease);
+}
+
+.menu-category[open] .menu-category-chevron {
+  transform: rotate(180deg);
+}
+
+.menu-category-body {
+  padding: 12px 0 14px;
 }
 
 .menu-group + .menu-group {
@@ -949,6 +1068,53 @@ h3 {
   font-weight: 800;
 }
 
+/* Sin foto: solo texto, con lugar para el "+" abajo a la derecha. */
+.product-card.is-textonly .product-card-text {
+  padding-right: 40px;
+}
+
+.product-card-includes {
+  display: -webkit-box;
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.product-card-was {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.product-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgba(25, 23, 20, 0.18);
+  color: var(--accent-ink);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.product-card-badge--inline {
+  position: static;
+  align-self: center;
+  margin-left: 4px;
+  box-shadow: none;
+}
+
+.product-card.is-offer .product-card-link {
+  border-color: var(--brand-line);
+}
+
 .product-card.is-soldout .product-card-media img {
   opacity: 0.55;
   filter: grayscale(1);
@@ -1037,6 +1203,24 @@ h3 {
   transform: scale(1.05);
 }
 
+/* Destacado sin foto: la inicial en grande, como en el carrito y el buscador. */
+.featured-initial {
+  font-size: 3.6rem;
+}
+
+.featured-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgba(25, 23, 20, 0.18);
+  color: var(--accent-ink);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
 .featured-media .card-action {
   right: 8px;
   bottom: 8px;
@@ -1052,6 +1236,10 @@ h3 {
   color: var(--ink-2);
   font-size: 0.92rem;
   font-weight: 700;
+}
+
+.featured-price s {
+  margin-left: 6px;
 }
 
 .featured-price small {
@@ -1214,7 +1402,7 @@ h3 {
   overscroll-behavior: contain;
 }
 
-/* Info del local */
+/* Horarios y envíos (hojas que abren las etiquetas de la portada) */
 .info-sheet {
   padding: 4px 18px calc(24px + env(safe-area-inset-bottom));
 }
@@ -1223,67 +1411,26 @@ h3 {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 0 16px;
-}
-
-.info-logo {
-  flex-shrink: 0;
-  border-radius: 16px;
+  padding: 8px 0 12px;
 }
 
 .info-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 800;
   line-height: 1.15;
 }
 
-.info-sub {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.info-actions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.info-action {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 6px;
-  border-radius: var(--r);
-  background: var(--paper);
-  color: var(--ink);
-  font-size: 0.82rem;
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.info-action:hover {
-  background: var(--brand-wash);
-  color: var(--ink);
-}
-
-.info-action-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  background: var(--card);
-  box-shadow: 0 1px 3px rgba(25, 23, 20, 0.1);
+.info-title svg {
   color: var(--brand);
 }
 
 .info-block {
-  padding: 16px 0;
+  margin-top: 16px;
+  padding: 16px 0 0;
   border-top: 1px dashed var(--line-strong);
 }
 
@@ -1580,6 +1727,46 @@ h3 {
 .pf-desc {
   margin: 0 0 8px;
   color: var(--ink-2);
+}
+
+.pf-offer {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: var(--paper);
+}
+
+.pf-offer h3 {
+  margin: 0;
+  font-family: var(--bs-body-font-family);
+  letter-spacing: 0;
+}
+
+.pf-offer-lines {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  font-weight: 600;
+  list-style: none;
+}
+
+.pf-offer-lines strong {
+  display: inline-block;
+  min-width: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-offer-save {
+  margin: 10px 0 0;
+  color: var(--ok);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.pf-offer-save s {
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .pf-price {

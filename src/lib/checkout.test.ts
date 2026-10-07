@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { dobleQueso } from "@/data/stores/doble-queso";
+import { rotiseriaAlexis } from "@/data/stores/rotiseria-alexis";
 import { evaluateCheckout, maxReachableStep, stepIsValid, suggestCashAmounts, type CheckoutDraft } from "./checkout";
 
-// Doble Queso: zonas de 1,5 / 3 / 5 km, pedido mínimo de $8.000 y acepta pedidos con el local cerrado.
-const business = dobleQueso.business;
-const near = { lat: business.address.lat + 0.005, lng: business.address.lng }; // ~0,6 km
-const far = { lat: business.address.lat + 0.2, lng: business.address.lng }; // ~22 km
+// Rotisería Alexis: envío dentro de boulevard ($1.000), fuera ($2.000) y zona rural ($3.000), pedido mínimo de $8.000
+// y acepta pedidos con el local cerrado.
+const business = rotiseriaAlexis.business;
+const pin = { lat: business.address.lat + 0.005, lng: business.address.lng };
 
 const base: CheckoutDraft = {
   name: "Ana Pérez",
   phone: "343 412 3456",
   method: "pickup",
   address: null,
+  zoneId: null,
   buildingType: "house",
   floor: "",
   apartment: "",
@@ -21,7 +22,11 @@ const base: CheckoutDraft = {
   coupon: null,
 };
 
-const delivery = (address: CheckoutDraft["address"]): Partial<CheckoutDraft> => ({ method: "delivery", address });
+const delivery = (address: CheckoutDraft["address"], zoneId: string | null = "dentro-de-boulevard"): Partial<CheckoutDraft> => ({
+  method: "delivery",
+  address,
+  zoneId,
+});
 
 describe("evaluateCheckout", () => {
   it("con retiro en el local y efectivo no hay nada que corregir", () => {
@@ -38,7 +43,7 @@ describe("evaluateCheckout", () => {
     expect(maxReachableStep(summary.errors)).toBe(2);
   });
 
-  it("cotiza el envío según la zona y valida la ubicación", () => {
+  it("cotiza el envío según la zona elegida y valida la ubicación", () => {
     const withoutPin = evaluateCheckout(
       { ...base, ...delivery({ label: "Italia 120", location: null, approximate: true }) },
       10000,
@@ -47,28 +52,46 @@ describe("evaluateCheckout", () => {
     );
     expect(withoutPin.errors.address).toBe("Marcá tu ubicación en el mapa.");
 
-    const close = evaluateCheckout(
-      { ...base, ...delivery({ label: "Italia 120", location: near, approximate: false }) },
+    const inside = evaluateCheckout(
+      { ...base, ...delivery({ label: "Italia 120", location: pin, approximate: false }) },
       10000,
       business,
       true,
     );
-    expect(close.errors).toEqual({});
-    expect(close.shipping).toBe(1000);
-    expect(close.total).toBe(11000);
+    expect(inside.errors).toEqual({});
+    expect(inside.shipping).toBe(1000);
+    expect(inside.total).toBe(11000);
 
-    const tooFar = evaluateCheckout(
-      { ...base, ...delivery({ label: "Ruta 11", location: far, approximate: false }) },
+    const outside = evaluateCheckout(
+      { ...base, ...delivery({ label: "Ruta 11", location: pin, approximate: false }, "fuera-de-boulevard") },
       10000,
       business,
       true,
     );
-    expect(tooFar.errors.address).toMatch(/fuera de la zona/);
+    expect(outside.shipping).toBe(2000);
+
+    const noZone = evaluateCheckout(
+      { ...base, ...delivery({ label: "Italia 120", location: pin, approximate: false }, null) },
+      10000,
+      business,
+      true,
+    );
+    expect(noZone.errors.zone).toBe("Elegí tu zona de envío.");
+    expect(stepIsValid(2, noZone.errors)).toBe(false);
+
+    const toAgree = evaluateCheckout(
+      { ...base, ...delivery({ label: "Italia 120", location: pin, approximate: false }, null) },
+      10000,
+      { ...business, delivery: { ...business.delivery, zones: [] } },
+      true,
+    );
+    expect(toAgree.errors).toEqual({});
+    expect(toAgree.quote).toEqual({ status: "to-agree" });
   });
 
   it("exige pedido mínimo y piso o depto para envíos", () => {
     const summary = evaluateCheckout(
-      { ...base, ...delivery({ label: "Italia 120", location: near, approximate: false }), buildingType: "apartment" },
+      { ...base, ...delivery({ label: "Italia 120", location: pin, approximate: false }), buildingType: "apartment" },
       5000,
       business,
       true,

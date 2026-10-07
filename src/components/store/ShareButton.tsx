@@ -1,10 +1,19 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { BoxArrowUp } from "react-bootstrap-icons";
 import { copyText } from "@/lib/browser";
 import { useToast } from "./ToastProvider";
 
-export default function ShareButton({ title, className }: { title: string; className?: string }) {
+interface ShareButtonProps {
+  title: string;
+  className?: string;
+  /** Ícono del botón (por defecto, la flecha de compartir). */
+  children?: ReactNode;
+}
+
+/** Comparte el link con el menú del celular; si no hay, lo copia. */
+export default function ShareButton({ title, className, children }: ShareButtonProps) {
   const notify = useToast();
 
   async function share() {
@@ -22,7 +31,7 @@ export default function ShareButton({ title, className }: { title: string; class
 
   return (
     <button type="button" className={className} aria-label="Compartir" onClick={share}>
-      <BoxArrowUp size={18} />
+      {children ?? <BoxArrowUp size={18} />}
     </button>
   );
 }

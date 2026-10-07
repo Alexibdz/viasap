@@ -78,7 +78,7 @@ export default function LoginForm({ showDemo }: { showDemo: boolean }) {
         </form>
         {showDemo && (
           <p className="adm-login-demo">
-            Para probar: <strong>admin@doblequeso.demo</strong> o <strong>admin@laesquina.demo</strong>, contraseña{" "}
+            Para probar: <strong>admin@rotiseriaalexis.demo</strong>, contraseña{" "}
             <strong>demo1234</strong>.
           </p>
         )}

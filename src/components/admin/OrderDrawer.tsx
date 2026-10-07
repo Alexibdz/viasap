@@ -50,6 +50,7 @@ function PrintTicket({ order, business }: { order: StoredOrder; business: Busine
             {item.qty}x {item.name}
             {item.variantName && ` (${item.variantName})`}
           </p>
+          {item.includes && <p>{`  Incluye: ${item.includes}`}</p>}
           {item.options.map((o) => (
             <p key={o.optionId + o.groupId}>
               {"  "}+ {o.qty > 1 ? `${o.qty}x ` : ""}
@@ -63,6 +64,7 @@ function PrintTicket({ order, business }: { order: StoredOrder; business: Busine
       <p className="adm-print-strong">
         {f.method === "delivery" ? `ENVÍO: ${f.address}` : "RETIRA EN EL LOCAL"}
       </p>
+      {f.method === "delivery" && f.zone && <p>Zona: {f.zone}</p>}
       {/* Lo que necesita quien lleva el pedido: piso, depto, referencias y el vuelto. */}
       {f.method === "delivery" && (f.floor || f.apartment) && (
         <p>{[f.floor && `Piso ${f.floor}`, f.apartment && `Depto ${f.apartment}`].filter(Boolean).join(" · ")}</p>
@@ -146,6 +148,7 @@ function OrderDetail({ order, onClose }: { order: StoredOrder; onClose: () => vo
               <p className="adm-detail-main">{f.address}</p>
               <p className="adm-detail-sub">
                 {[
+                  f.zone,
                   BUILDING[f.buildingType],
                   f.floor && `piso ${f.floor}`,
                   f.apartment && `depto ${f.apartment}`,
@@ -177,6 +180,7 @@ function OrderDetail({ order, onClose }: { order: StoredOrder; onClose: () => vo
                   </span>
                   <span>{formatMoney(itemTotal(item))}</span>
                 </div>
+                {item.includes && <p className="adm-line-options">Incluye: {item.includes}</p>}
                 {item.options.length > 0 && (
                   <p className="adm-line-options">
                     {item.options.map((o) => `${o.qty > 1 ? `${o.qty}× ` : ""}${o.name}`).join(" · ")}
@@ -199,7 +203,7 @@ function OrderDetail({ order, onClose }: { order: StoredOrder; onClose: () => vo
             )}
             {f.method === "delivery" && (
               <div>
-                <dt>Envío</dt>
+                <dt>Envío{f.zone && ` (${f.zone.toLowerCase()})`}</dt>
                 <dd>{f.cost === null ? "A coordinar" : formatMoney(f.cost)}</dd>
               </div>
             )}

@@ -1113,8 +1113,13 @@ select.adm-input {
 }
 
 .adm-row--zone {
-  grid-template-columns: auto minmax(0, 120px) minmax(0, 170px) auto;
-  justify-content: start;
+  grid-template-columns: minmax(0, 1fr) 116px auto;
+}
+
+@media (min-width: 700px) {
+  .adm-row--zone {
+    grid-template-columns: minmax(0, 1fr) 160px auto;
+  }
 }
 
 /* Opciones: en el celular, el nombre va arriba y el precio y el máximo abajo. */
@@ -3020,41 +3025,45 @@ select.adm-input {
   box-shadow: var(--shadow-1);
 }
 
-.adm-mini-cover {
-  position: relative;
-  height: 110px;
-  background: var(--paper-deep);
+.adm-mini-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  gap: 10px;
+  align-items: end;
+  padding: 16px;
+  background: #f3ead8;
+  color: #1b130b;
 }
 
-.adm-mini-cover img {
+.adm-mini-hero > strong {
+  overflow-wrap: anywhere;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.adm-mini-logo {
+  position: relative;
+  height: 84px;
+  overflow: hidden;
+  border: 2px solid #1b130b;
+  border-radius: 14px;
+  background: #2a211a;
+}
+
+.adm-mini-logo img {
   object-fit: cover;
 }
 
 .adm-mini-body {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 40px 16px 18px;
+  padding: 16px 16px 18px;
   text-align: center;
-}
-
-.adm-mini-body > strong {
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.15rem;
-  font-weight: 800;
-}
-
-.adm-mini-logo {
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  border: 3px solid var(--card);
-  border-radius: 18px;
-  background: var(--card);
-  box-shadow: var(--shadow-1);
-  transform: translateX(-50%);
 }
 
 .adm-mini-body .btn-main {
@@ -3165,4 +3174,110 @@ select.adm-input {
     grid-template-areas: "code text switch actions";
     grid-template-columns: 150px minmax(0, 1fr) 120px auto;
   }
+}
+
+/* Armador de ofertas: en el celular, el producto arriba y presentación y cantidad abajo. */
+.adm-row--bundle {
+  grid-template-columns: minmax(0, 1fr) 92px auto;
+}
+
+.adm-row--bundle > .adm-bundle-product {
+  grid-column: 1 / -1;
+}
+
+.adm-bundle-price {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+@media (min-width: 700px) {
+  .adm-row--bundle {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 170px) 92px auto;
+  }
+
+  .adm-row--bundle > .adm-bundle-product {
+    grid-column: auto;
+  }
+}
+
+.adm-offer-sum {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.adm-offer-sum > div {
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--paper);
+}
+
+.adm-offer-sum dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.adm-offer-sum dd {
+  margin: 2px 0 0;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.adm-offer-sum .is-good {
+  background: var(--ok-wash);
+  color: var(--ok);
+}
+
+.adm-offer-sum .is-bad dd {
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .adm-offer-sum {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Marcas de la categoría (ofertas, filtro rápido) al lado de la cantidad de productos. */
+.adm-flag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  vertical-align: 1px;
+}
+
+/* Categoría: emoji chico al lado del nombre y emojis sugeridos debajo. */
+.adm-grid-emoji {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 10px;
+}
+
+/* line-height 1: mismo alto que el campo del nombre aunque la letra sea más grande. */
+.adm-input--emoji {
+  font-size: 1.3rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.adm-emoji-picks {
+  margin: -6px 0 16px;
+}
+
+.adm-emoji-picks .adm-chip {
+  padding: 4px 9px;
+  font-size: 1.1rem;
+}
+
+/* Lugar vacío de la estrella en los productos que no son ofertas (mantiene alineadas las filas). */
+span.adm-star {
+  pointer-events: none;
 }

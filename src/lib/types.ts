@@ -32,16 +32,17 @@ export interface StoreAddress extends GeoPoint {
   province: string;
 }
 
+/** Zona de envío con nombre ("Dentro de boulevard"). El cliente elige la suya al pedir. */
 export interface DeliveryZone {
-  /** Radio máximo en km, en línea recta desde el local. */
-  upToKm: number;
+  id: string;
+  name: string;
   cost: number;
 }
 
 export interface DeliverySettings {
   pickup: boolean;
   delivery: boolean;
-  /** De menor a mayor radio. Sin zonas, el costo de envío se coordina por WhatsApp. */
+  /** En el orden en que se muestran. Sin zonas, el costo de envío se coordina por WhatsApp. */
   zones: DeliveryZone[];
   /** Pedido mínimo para envíos a domicilio. */
   minOrder?: number;
@@ -67,6 +68,9 @@ export interface Business {
   slug: string;
   name: string;
   description?: string;
+  /** Frase resaltada en amarillo después de la descripción ("Todas las burgers vienen con papas."). */
+  highlight?: string;
+  /** Se muestra grande en la portada de la tienda. */
   logoUrl: string;
   /** Imagen para la vista previa al compartir el link (WhatsApp, Instagram). */
   coverUrl?: string;
@@ -109,10 +113,19 @@ export interface OptionGroup {
   options: Option[];
 }
 
+/** Producto del menú incluido en una oferta. */
+export interface BundleItem {
+  productId: string;
+  /** Presentación incluida, si el producto tiene. */
+  variantId?: string;
+  qty: number;
+}
+
 export interface Product {
   id: string;
   name: string;
   description?: string;
+  /** Opcional: mejor sin foto que con una foto de referencia que no es la real. */
   imageUrl?: string;
   /** Precio único. Se ignora si el producto tiene `variants`. */
   price?: number;
@@ -121,8 +134,12 @@ export interface Product {
   /** "Personalizá tu selección": extras, salsas, guarniciones… */
   optionGroups?: OptionGroup[];
   soldOut?: boolean;
-  /** Aparece en "Lo más pedido", arriba del menú. */
+  /** Oferta o promo: puede estar en cualquier categoría y destacarse arriba del menú. */
+  isOffer?: boolean;
+  /** Solo para ofertas: aparece en "Ofertas destacadas", arriba del menú. */
   featured?: boolean;
+  /** Lo que incluye la oferta, si se armó con productos del menú (armador de ofertas). */
+  bundle?: BundleItem[];
 }
 
 export interface Subcategory {
@@ -135,6 +152,12 @@ export interface Category {
   id: string;
   name: string;
   imageUrl?: string;
+  /** Decoración al lado del nombre en la tienda (🍕). No va en el mensaje de WhatsApp. */
+  emoji?: string;
+  /** "offers": sus productos se arman con el armador de ofertas. */
+  kind?: "offers";
+  /** Sin el campo "¿Alguna aclaración?" en sus productos (bebidas). */
+  hideNotes?: boolean;
   /** Agrupaciones dentro de la categoría. Con una sola, no se muestra título de grupo. */
   subcategories: Subcategory[];
 }
@@ -164,11 +187,30 @@ export interface StoreSeed {
   admin: AdminAccount;
 }
 
+/** Una línea de lo que incluye una oferta, con su precio por separado (cantidad incluida). */
+export interface BundleLine {
+  productId: string;
+  name: string;
+  qty: number;
+  price: number;
+}
+
+export interface OfferInfo {
+  lines: BundleLine[];
+  /** Lo que costaría comprar todo por separado. */
+  regularPrice: number;
+  /** Diferencia con el precio de la oferta (0 si no hay ahorro). */
+  savings: number;
+}
+
 export interface ProductContext {
   product: Product;
   category: { id: string; name: string };
   /** Encabezado del producto en el mensaje: "Minutas · De pollo" o "Bebidas". */
   sectionLabel: string;
+  offer?: OfferInfo;
+  /** El cliente puede dejar una aclaración (no en las categorías marcadas, como bebidas). */
+  allowsNotes: boolean;
 }
 
 export interface SearchEntry {
@@ -179,6 +221,7 @@ export interface SearchEntry {
   categoryId: string;
   categoryName: string;
   priceFrom: number;
+  /** Tiene presentaciones con precios distintos: el precio se muestra "desde". */
   hasVariants: boolean;
   soldOut: boolean;
 }
@@ -204,6 +247,8 @@ export interface CartItem {
   variantName?: string;
   unitPrice: number;
   options: CartOption[];
+  /** Lo que incluye una oferta: "2x Classic (Doble), 1x Papas fritas (Grande)". */
+  includes?: string;
   notes?: string;
   qty: number;
 }
@@ -229,6 +274,8 @@ export type Fulfillment =
       floor?: string;
       apartment?: string;
       references?: string;
+      /** Nombre de la zona elegida ("Dentro de boulevard"). */
+      zone?: string;
       /** null = se coordina por WhatsApp. */
       cost: number | null;
     };

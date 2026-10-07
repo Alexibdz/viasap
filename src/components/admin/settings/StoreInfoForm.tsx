@@ -25,6 +25,7 @@ export default function StoreInfoForm({ business }: { business: Business }) {
     {
       name: business.name,
       description: business.description ?? "",
+      highlight: business.highlight ?? "",
       whatsapp: business.whatsapp,
       instagram: business.instagram ?? "",
       address: { ...business.address },
@@ -81,6 +82,19 @@ export default function StoreInfoForm({ business }: { business: Business }) {
           maxLength={200}
           value={value.description}
           onChange={(e) => update({ description: e.target.value })}
+        />
+      </Field>
+      <Field
+        label="Frase destacada"
+        htmlFor="s-highlight"
+        hint="Opcional. Va resaltada después de la descripción. Ej: Todas las burgers vienen con papas."
+      >
+        <input
+          id="s-highlight"
+          className="adm-input"
+          value={value.highlight}
+          maxLength={80}
+          onChange={(e) => update({ highlight: e.target.value })}
         />
       </Field>
       <div className="adm-grid-2">

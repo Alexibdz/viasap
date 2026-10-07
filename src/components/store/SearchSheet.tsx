@@ -46,6 +46,8 @@ export default function SearchSheet({ show, onHide, index, categories }: SearchS
   function jumpTo(categoryId: string) {
     onHide();
     const section = document.getElementById(`c-${categoryId}`);
+    // Las categorías son desplegables: se abre la elegida antes de bajar hasta ella.
+    if (section instanceof HTMLDetailsElement) section.open = true;
     if (section) window.setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
     else router.push(`/${slug}#c-${categoryId}`);
   }

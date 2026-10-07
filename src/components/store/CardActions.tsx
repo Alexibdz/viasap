@@ -21,8 +21,15 @@ export function CardPlus({ productId }: { productId: string }) {
   );
 }
 
+interface QuickAddButtonProps {
+  product: Product;
+  sectionLabel: string;
+  /** Lo que incluye, si es una oferta (va al mensaje del pedido). */
+  includes?: string;
+}
+
 /** Agrega directo al pedido los productos que no tienen nada para elegir. */
-export function QuickAddButton({ product, sectionLabel }: { product: Product; sectionLabel: string }) {
+export function QuickAddButton({ product, sectionLabel, includes }: QuickAddButtonProps) {
   const { items, add } = useCart();
   const notify = useToast();
   const qty = qtyInCart(items, product.id);
@@ -37,6 +44,7 @@ export function QuickAddButton({ product, sectionLabel }: { product: Product; se
         sectionLabel,
         unitPrice: product.price ?? 0,
         options: [],
+        includes,
         qty: 1,
       },
     ]);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dobleQueso } from "@/data/stores/doble-queso";
+import { rotiseriaAlexis } from "@/data/stores/rotiseria-alexis";
 import { canTransition, customerNotice, nextActionLabel, nextStatus, statusLabel } from "./order-status";
 import type { StoredOrder } from "./types";
 
@@ -37,7 +37,7 @@ describe("estados del pedido", () => {
   });
 
   it("arma los avisos para el cliente", () => {
-    const business = dobleQueso.business;
+    const business = rotiseriaAlexis.business;
     expect(customerNotice(order, business, "preparing")).toBe(
       "¡Hola Ana! Confirmamos tu pedido #4444 ($12.500) y ya lo estamos preparando. Cuando puedas, mandanos el comprobante de la transferencia.",
     );

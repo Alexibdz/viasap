@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { dobleQueso } from "@/data/stores/doble-queso";
+import { rotiseriaAlexis } from "@/data/stores/rotiseria-alexis";
 import { buildOrderMessage, generateOrderRef, whatsappUrl } from "./order";
 import type { Business, CartItem, Order } from "./types";
 
 const business: Business = {
-  ...dobleQueso.business,
+  ...rotiseriaAlexis.business,
   name: "Walo's Burgers",
   payments: {
     cash: true,
@@ -39,6 +39,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
       address: "Catamarca 502, Victoria, Entre Ríos, Argentina",
       location: { lat: -32.62, lng: -60.15 },
       buildingType: "house",
+      zone: "Dentro de boulevard",
       cost: 1000,
     },
     payment: { method: "transfer" },
@@ -68,7 +69,7 @@ describe("buildOrderMessage", () => {
         "Envío: $1.000",
         "*TOTAL: $15.500*",
         "",
-        "*Entrega:* envío a domicilio",
+        "*Entrega:* envío a domicilio (dentro de boulevard)",
         "Catamarca 502, Victoria, Entre Ríos, Argentina",
         "Casa",
         "Ubicación: https://www.google.com/maps/search/?api=1&query=-32.620000,-60.150000",
@@ -124,6 +125,23 @@ describe("buildOrderMessage", () => {
     const message = buildOrderMessage(makeOrder({ items: [extras, coca] }), business);
     expect(message).toContain("   + Extras: 2x Extra cheddar (+$1.600), Pepinillos (+$500)");
     expect(message).toContain("\n\n*BEBIDAS*\n• 3x Coca-Cola 500 ml → $6.000\n   + Hielo: Con hielo\n━━━━━━━━━━━━━━");
+  });
+
+  it("detalla lo que incluye una oferta", () => {
+    const combo: CartItem = {
+      key: "linea-4",
+      productId: "combo-pareja",
+      name: "Combo pareja",
+      sectionLabel: "Ofertas",
+      unitPrice: 23900,
+      options: [],
+      includes: "2x Classic (Doble), 1x Papas fritas (Grande)",
+      qty: 2,
+    };
+    const message = buildOrderMessage(makeOrder({ items: [combo] }), business);
+    expect(message).toContain(
+      "*OFERTAS*\n• 2x Combo pareja → $47.800\n   Incluye (c/u): 2x Classic (Doble), 1x Papas fritas (Grande)",
+    );
   });
 
   it("incluye cupón, pago combinado, departamento y envío a coordinar", () => {

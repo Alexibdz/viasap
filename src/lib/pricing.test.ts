@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatMoney, normalizeText, parseAmount } from "./format";
-import { distanceKm, quoteShipping } from "./geo";
-import { couponDiscount, describeGroupRule, itemTotal, priceFrom } from "./pricing";
+import { couponDiscount, describeGroupRule, itemTotal, priceFrom, showsPriceFrom } from "./pricing";
+import { quoteShipping, shippingFrom } from "./shipping";
 import type { CartItem, DeliverySettings } from "./types";
 
 describe("formatMoney", () => {
@@ -67,34 +67,36 @@ describe("precios", () => {
   });
 });
 
+describe("precio desde", () => {
+  it("solo dice 'desde' si las presentaciones tienen precios distintos", () => {
+    const variants = (...prices: number[]) => prices.map((price, i) => ({ id: `v${i}`, name: `V${i}`, price }));
+    expect(showsPriceFrom({ id: "pepsi", name: "Pepsi", variants: variants(4800, 3500) })).toBe(true);
+    expect(showsPriceFrom({ id: "laton", name: "Latón", variants: variants(4000, 4000) })).toBe(false);
+    expect(showsPriceFrom({ id: "coca", name: "Coca", price: 2000 })).toBe(false);
+  });
+});
+
 describe("envíos", () => {
-  const store = { lat: -32.6181, lng: -60.1547 };
   const delivery: DeliverySettings = {
     pickup: true,
     delivery: true,
     zones: [
-      { upToKm: 1.5, cost: 1000 },
-      { upToKm: 3, cost: 1500 },
+      { id: "dentro", name: "Dentro de boulevard", cost: 1000 },
+      { id: "fuera", name: "Fuera de boulevard", cost: 1500 },
     ],
   };
 
-  it("mide distancias en km", () => {
-    expect(distanceKm(store, { lat: store.lat + 0.01, lng: store.lng })).toBeCloseTo(1.112, 2);
+  it("cotiza según la zona que elige el cliente", () => {
+    expect(quoteShipping(delivery, null)).toEqual({ status: "pending" });
+    expect(quoteShipping(delivery, "no-existe")).toEqual({ status: "pending" });
+    expect(quoteShipping(delivery, "dentro")).toMatchObject({ status: "ok", cost: 1000, zone: { name: "Dentro de boulevard" } });
+    expect(quoteShipping(delivery, "fuera")).toMatchObject({ status: "ok", cost: 1500 });
+    expect(quoteShipping({ ...delivery, zones: [] }, "dentro")).toEqual({ status: "to-agree" });
   });
 
-  it("cotiza según la zona", () => {
-    expect(quoteShipping(delivery, store, null)).toEqual({ status: "pending" });
-    expect(quoteShipping(delivery, store, { lat: store.lat + 0.01, lng: store.lng })).toMatchObject({
-      status: "ok",
-      cost: 1000,
-    });
-    expect(quoteShipping(delivery, store, { lat: store.lat + 0.02, lng: store.lng })).toMatchObject({
-      status: "ok",
-      cost: 1500,
-    });
-    expect(quoteShipping(delivery, store, { lat: store.lat + 0.05, lng: store.lng })).toMatchObject({
-      status: "out-of-range",
-    });
-    expect(quoteShipping({ ...delivery, zones: [] }, store, null)).toEqual({ status: "to-agree" });
+  it("resume el envío más barato para la portada", () => {
+    expect(shippingFrom(delivery)).toEqual({ cost: 1000, varies: true });
+    expect(shippingFrom({ ...delivery, zones: [delivery.zones[0]] })).toEqual({ cost: 1000, varies: false });
+    expect(shippingFrom({ ...delivery, zones: [] })).toBeNull();
   });
 });

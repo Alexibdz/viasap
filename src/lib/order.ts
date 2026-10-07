@@ -43,6 +43,7 @@ function itemLines(items: CartItem[]): string[] {
     for (const item of sectionItems) {
       const name = item.variantName ? `${item.name} (${item.variantName})` : item.name;
       lines.push(`• ${item.qty}x ${name} → ${formatMoney(itemTotal(item))}`);
+      if (item.includes) lines.push(`   Incluye${item.qty > 1 ? " (c/u)" : ""}: ${item.includes}`);
       // Las opciones son por unidad: con 2 hamburguesas, cada una lleva sus extras.
       const each = item.qty > 1 ? " c/u" : "";
       for (const [groupName, options] of groupBy(item.options, (o) => o.groupName)) {
@@ -83,7 +84,7 @@ function fulfillmentLines(order: Order, business: Business): string[] {
     const unit = [f.floor && `piso ${f.floor}`, f.apartment && `depto ${f.apartment}`].filter(Boolean);
     if (unit.length) building += `: ${unit.join(", ")}`;
   }
-  const lines = ["*Entrega:* envío a domicilio", singleLine(f.address)];
+  const lines = [`*Entrega:* envío a domicilio${f.zone ? ` (${f.zone.toLowerCase()})` : ""}`, singleLine(f.address)];
   lines.push(f.references ? `${building} · Ref.: ${singleLine(f.references)}` : building);
   if (f.location) lines.push(`Ubicación: ${googleMapsUrl(f.location)}`);
   return lines;

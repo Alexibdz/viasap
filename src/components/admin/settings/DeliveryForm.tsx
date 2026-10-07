@@ -2,6 +2,7 @@
 
 import { PlusLg, Trash3 } from "react-bootstrap-icons";
 import { saveDeliverySettings } from "@/app/admin/actions";
+import { SUGGESTED_ZONES } from "@/lib/shipping";
 import type { Business } from "@/lib/types";
 import { Field, MoneyInput, Panel, SaveBar, Switch } from "../ui";
 import { useSettingsForm } from "./useSettingsForm";
@@ -12,7 +13,7 @@ export default function DeliveryForm({ business }: { business: Business }) {
     {
       pickup: delivery.pickup,
       delivery: delivery.delivery,
-      zones: delivery.zones.map((z) => ({ upToKm: String(z.upToKm), cost: String(z.cost) })),
+      zones: delivery.zones.map((z) => ({ id: z.id as string | null, name: z.name, cost: String(z.cost) })),
       minOrder: delivery.minOrder ? String(delivery.minOrder) : "",
     },
     saveDeliverySettings,
@@ -35,7 +36,7 @@ export default function DeliveryForm({ business }: { business: Business }) {
           checked={value.delivery}
           onChange={(on) => update({ delivery: on })}
           label="Envío a domicilio"
-          description="Con costo según la distancia."
+          description="Con costo según la zona."
         />
       </div>
       {errors.methods && <p className="adm-error">{errors.methods}</p>}
@@ -44,29 +45,22 @@ export default function DeliveryForm({ business }: { business: Business }) {
         <>
           <h3 className="adm-subheading">Zonas de envío</h3>
           <p className="adm-hint">
-            Se miden en línea recta desde el local. Más lejos que la última zona no se hacen envíos. Sin zonas, el costo se
-            arregla por WhatsApp.
+            Por ejemplo, dentro y fuera de boulevard. El cliente elige su zona al hacer el pedido y ve el costo. Sin zonas,
+            el costo se arregla por WhatsApp.
           </p>
           <div className="adm-rows">
             {value.zones.map((zone, index) => (
-              <div key={index} className="adm-row adm-row--zone">
-                <span className="adm-muted">Hasta</span>
-                <span className="adm-unit">
-                  <input
-                    className="adm-input"
-                    type="number"
-                    inputMode="decimal"
-                    step="0.5"
-                    min="0.1"
-                    max="50"
-                    aria-label={`Distancia de la zona ${index + 1}`}
-                    value={zone.upToKm}
-                    onChange={(e) => setZone(index, { upToKm: e.target.value })}
-                  />
-                  <span aria-hidden>km</span>
-                </span>
+              <div key={zone.id ?? `nueva-${index}`} className="adm-row adm-row--zone">
+                <input
+                  className="adm-input"
+                  aria-label={`Nombre de la zona ${index + 1}`}
+                  placeholder="Ej: Dentro de boulevard"
+                  maxLength={40}
+                  value={zone.name}
+                  onChange={(e) => setZone(index, { name: e.target.value })}
+                />
                 <MoneyInput
-                  aria-label={`Costo de la zona ${index + 1}`}
+                  aria-label={`Costo de envío a ${zone.name || `la zona ${index + 1}`}`}
                   placeholder="0"
                   value={zone.cost}
                   onChange={(cost) => setZone(index, { cost })}
@@ -79,20 +73,26 @@ export default function DeliveryForm({ business }: { business: Business }) {
                 >
                   <Trash3 />
                 </button>
-                {(errors[`zones.${index}.upToKm`] || errors[`zones.${index}.cost`]) && (
-                  <p className="adm-error adm-row-error">{errors[`zones.${index}.upToKm`] ?? errors[`zones.${index}.cost`]}</p>
+                {(errors[`zones.${index}.name`] || errors[`zones.${index}.cost`]) && (
+                  <p className="adm-error adm-row-error">{errors[`zones.${index}.name`] ?? errors[`zones.${index}.cost`]}</p>
                 )}
               </div>
             ))}
             {errors.zones && <p className="adm-error">{errors.zones}</p>}
+            {value.zones.length === 0 && (
+              <button
+                type="button"
+                className="adm-btn adm-btn--dashed"
+                onClick={() => update({ zones: SUGGESTED_ZONES.map((name) => ({ id: null, name, cost: "" })) })}
+              >
+                <PlusLg aria-hidden /> Usar dentro y fuera de boulevard, y zona rural
+              </button>
+            )}
             <button
               type="button"
               className="adm-btn adm-btn--dashed"
               disabled={value.zones.length >= 8}
-              onClick={() => {
-                const last = Number(value.zones.at(-1)?.upToKm) || 0;
-                update({ zones: [...value.zones, { upToKm: String(last + 2), cost: "" }] });
-              }}
+              onClick={() => update({ zones: [...value.zones, { id: null, name: "", cost: "" }] })}
             >
               <PlusLg aria-hidden /> Agregar zona
             </button>

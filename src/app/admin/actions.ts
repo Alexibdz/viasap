@@ -21,6 +21,8 @@ import {
   updateProductFlags,
   type FieldErrors,
 } from "@/lib/admin-forms";
+import { allProducts } from "@/lib/menu";
+import { offersIncluding } from "@/lib/offers";
 import { canTransition } from "@/lib/order-status";
 import { updateOrder } from "@/lib/server/orders";
 import { verifyPassword } from "@/lib/server/password";
@@ -43,7 +45,7 @@ const isDirection = (value: unknown): value is -1 | 1 => value === -1 || value =
 /** Refresca la tienda pública, la portada y el panel después de un cambio. */
 function refresh() {
   // Las páginas de las tiendas son estáticas y Next las guarda por archivo de ruta
-  // (app/[slug]/layout.tsx): con la URL literal ("/doble-queso") no encuentra nada.
+  // (app/[slug]/layout.tsx): con la URL literal ("/rotiseria-alexis") no encuentra nada.
   // El patrón invalida todas las tiendas, que se regeneran en la próxima visita.
   revalidatePath("/[slug]", "layout");
   revalidatePath("/admin", "layout");
@@ -162,9 +164,11 @@ export async function saveProduct(draft: unknown): Promise<ActionResult & { prod
 
 export async function deleteProduct(productId: unknown): Promise<ActionResult> {
   if (typeof productId !== "string") return { ok: false, error: "Producto inválido." };
-  return editStore((store) =>
-    removeProduct(store.menu, productId) ? { ok: true } : { ok: false, error: "El producto ya no existe." },
-  );
+  return editStore((store) => {
+    const [offer] = offersIncluding(allProducts(store.menu), productId);
+    if (offer) return { ok: false, error: `Está incluido en la oferta "${offer.name}": sacalo de ahí primero.` };
+    return removeProduct(store.menu, productId) ? { ok: true } : { ok: false, error: "El producto ya no existe." };
+  });
 }
 
 export async function setProductFlags(productId: unknown, flags: unknown): Promise<ActionResult> {

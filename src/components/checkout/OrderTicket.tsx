@@ -45,7 +45,7 @@ export default function OrderTicket({ draft, summary }: { draft: CheckoutDraft; 
           )}
           {draft.method === "delivery" && (
             <div>
-              <dt>Envío</dt>
+              <dt>Envío{quote?.status === "ok" && ` (${quote.zone.name.toLowerCase()})`}</dt>
               <dd>{quote?.status === "ok" ? formatMoney(quote.cost) : "A coordinar"}</dd>
             </div>
           )}
