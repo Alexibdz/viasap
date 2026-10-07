@@ -1,21 +1,17 @@
 import { formatMoney } from "./format";
-import type { DeliverySettings, DeliveryZone } from "./types";
+import type { DeliverySettings } from "./types";
 
-// Envío por zonas con nombre ("Dentro de boulevard" / "Fuera de boulevard"):
-// el cliente elige la suya al pedir y el costo sale de esa zona.
+// Envío por zonas con nombre ("Dentro de boulevard" / "Fuera de boulevard"). El cliente
+// no elige la zona: al pedir ve los precios y el local le confirma el envío por WhatsApp.
+// Si cuesta lo mismo en todas (o hay una sola), el costo ya se sabe y va en el total.
 
-export type ShippingQuote =
-  | { status: "to-agree" }
-  | { status: "pending" }
-  | { status: "ok"; cost: number; zone: DeliveryZone };
+export type ShippingQuote = { status: "to-agree" } | { status: "ok"; cost: number };
 
-export function quoteShipping(delivery: DeliverySettings, zoneId: string | null | undefined): ShippingQuote {
-  if (!delivery.zones.length) return { status: "to-agree" };
-  const zone = zoneId ? delivery.zones.find((z) => z.id === zoneId) : undefined;
-  return zone ? { status: "ok", cost: zone.cost, zone } : { status: "pending" };
+export function quoteShipping(delivery: DeliverySettings): ShippingQuote {
+  const from = shippingFrom(delivery);
+  return from && !from.varies ? { status: "ok", cost: from.cost } : { status: "to-agree" };
 }
 
-/** Envío más barato y si hay zonas con otro costo ("desde"). null = sin zonas, se coordina. */
 export function shippingFrom(delivery: DeliverySettings): { cost: number; varies: boolean } | null {
   if (!delivery.zones.length) return null;
   const costs = delivery.zones.map((z) => z.cost);

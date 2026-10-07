@@ -124,7 +124,7 @@ src/
     order-status.ts  estados del pedido y avisos para el cliente
     admin-forms.ts   validación de los formularios del panel
     checkout.ts      totales y validaciones de cada paso
-    shipping.ts      costo de envío según la zona que elige el cliente
+    shipping.ts      precios del envío por zona (el cliente no elige la zona)
     offers.ts        qué incluye cada oferta (y el ahorro, que solo ve el panel)
     hero.ts          nombre de la cabecera (última palabra aparte y tamaño para que entre)
     store-upgrade.ts actualiza tiendas guardadas con un formato anterior
@@ -137,8 +137,10 @@ src/
 Algunas decisiones:
 
 - El carrito se guarda en el navegador, por tienda. Nombre, teléfono y dirección se recuerdan para el próximo pedido.
-- El envío se cobra por zonas con nombre (dentro de boulevard, fuera de boulevard, zona rural…): el cliente elige
-  la suya al pedir y ve el costo. No se calcula la distancia; el mapa queda para que el local encuentre la casa.
+- El envío tiene precios por zona con nombre (dentro de boulevard, fuera de boulevard, zona rural…). Al pedir, el
+  cliente los ve arriba de la dirección pero no elige la zona: el total queda "+ envío" y el local se lo confirma por
+  WhatsApp. Si hay un solo precio, se suma solo. No se calcula la distancia; el mapa queda para que el local
+  encuentre la casa.
 - La cabecera es la misma para todos: logo, ciudad, nombre (la última palabra en su renglón), descripción, la
   tarjeta de estado ("Abierto ahora · Cierra a las 00:30", "Cerrado ahora · Abre hoy a las 20:00" o "Pedidos en
   pausa"), que abre los horarios, y las etiquetas de envío (abre las zonas) y retiro (abre el mapa). La barra del

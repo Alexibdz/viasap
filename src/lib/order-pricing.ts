@@ -40,7 +40,6 @@ export interface OrderInput {
         address: string;
         location: GeoPoint | null;
         /** Zona de envío que eligió el cliente. */
-        zoneId?: string;
         buildingType: BuildingType;
         floor?: string;
         apartment?: string;
@@ -175,8 +174,7 @@ export function priceOrder(store: StoreSeed, input: unknown, now: Date): PricedO
     const address = cleanText(requested.address, 200);
     if (address.length < 3) return fail("Falta la dirección de entrega.");
     const location = parseLocation(requested.location);
-    const quote = quoteShipping(business.delivery, typeof requested.zoneId === "string" ? requested.zoneId : null);
-    if (quote.status === "pending") return fail("Elegí la zona de envío.");
+    const quote = quoteShipping(business.delivery);
     if (business.delivery.minOrder && subtotal < business.delivery.minOrder) {
       return fail("El pedido no llega al mínimo para envíos.");
     }
@@ -190,7 +188,6 @@ export function priceOrder(store: StoreSeed, input: unknown, now: Date): PricedO
       floor: buildingType === "apartment" ? cleanText(requested.floor, 10) || undefined : undefined,
       apartment: buildingType === "apartment" ? cleanText(requested.apartment, 10) || undefined : undefined,
       references: cleanText(requested.references, 150) || undefined,
-      zone: quote.status === "ok" ? quote.zone.name : undefined,
       cost: quote.status === "ok" ? quote.cost : null,
     };
   } else {

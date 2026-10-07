@@ -12,8 +12,6 @@ export interface CheckoutDraft {
   phone: string;
   method: DeliveryMethod | null;
   address: AddressValue | null;
-  /** Zona de envío elegida ("Dentro de boulevard"). */
-  zoneId: string | null;
   buildingType: BuildingType;
   floor: string;
   apartment: string;
@@ -26,7 +24,6 @@ export interface CheckoutDraft {
 export type CheckoutField =
   | "method"
   | "address"
-  | "zone"
   | "unit"
   | "minOrder"
   | "name"
@@ -38,7 +35,7 @@ export type CheckoutField =
 /** Campos de cada paso, en el orden en que aparecen en pantalla. */
 export const STEP_FIELDS: Record<Step, CheckoutField[]> = {
   1: [],
-  2: ["method", "address", "zone", "unit", "minOrder", "name", "phone"],
+  2: ["method", "address", "unit", "minOrder", "name", "phone"],
   3: ["closed", "payment", "cash"],
 };
 
@@ -63,7 +60,7 @@ export function evaluateCheckout(
   isOpen: boolean | null,
 ): CheckoutSummary {
   const { delivery } = business;
-  const quote = draft.method === "delivery" ? quoteShipping(delivery, draft.zoneId) : null;
+  const quote = draft.method === "delivery" ? quoteShipping(delivery) : null;
   const shipping = quote?.status === "ok" ? quote.cost : 0;
   const discount = draft.coupon ? couponDiscount(draft.coupon, subtotal) : 0;
   const total = subtotal - discount + shipping;
@@ -74,7 +71,6 @@ export function evaluateCheckout(
   if (draft.method === "delivery") {
     if (!draft.address?.label) errors.address = "Buscá y elegí tu dirección.";
     else if (!draft.address.location) errors.address = "Marcá tu ubicación en el mapa.";
-    if (quote?.status === "pending") errors.zone = "Elegí tu zona de envío.";
     if (draft.buildingType === "apartment" && !draft.floor.trim() && !draft.apartment.trim()) {
       errors.unit = "Indicá el piso y el departamento.";
     }

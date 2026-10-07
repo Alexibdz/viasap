@@ -107,22 +107,24 @@ describe("priceOrder", () => {
     expectError(priceOrder(store, tooMuchCheddar, OPEN), /opciones/);
   });
 
-  it("cotiza el envío según la zona y valida dirección, zona y mínimo", () => {
-    const delivery = (zoneId?: string) =>
-      input({
-        fulfillment: { method: "delivery", address: "Italia 120", location: near, zoneId, buildingType: "house" },
-        payment: { method: "transfer" },
-      });
-    const inside = priceOrder(store, delivery("dentro-de-boulevard"), OPEN);
-    expect(inside.ok && inside.order.totals).toEqual({ subtotal: 14500, discount: 0, shipping: 1000, total: 15500 });
-    expect(inside.ok && inside.order.fulfillment).toMatchObject({ zone: "Dentro de boulevard", cost: 1000 });
-    const outside = priceOrder(store, delivery("fuera-de-boulevard"), OPEN);
-    expect(outside.ok && outside.order.totals.shipping).toBe(2000);
-    expectError(priceOrder(store, delivery(), OPEN), /zona/);
-    expectError(priceOrder(store, delivery("en-la-luna"), OPEN), /zona/);
+  it("deja el envío a confirmar según la zona y valida dirección y mínimo", () => {
+    const delivery = input({
+      fulfillment: { method: "delivery", address: "Italia 120", location: near, buildingType: "house" },
+      payment: { method: "transfer" },
+    });
+    const byZone = priceOrder(store, delivery, OPEN);
+    expect(byZone.ok && byZone.order.totals).toEqual({ subtotal: 14500, discount: 0, shipping: 0, total: 14500 });
+    expect(byZone.ok && byZone.order.fulfillment).toMatchObject({ method: "delivery", cost: null });
+    // Con un solo precio de envío, se cobra.
+    const oneZone = structuredClone(store);
+    oneZone.business.delivery.zones = [{ id: "victoria", name: "Victoria", cost: 1200 }];
+    const fixed = priceOrder(oneZone, delivery, OPEN);
+    expect(fixed.ok && fixed.order.totals).toMatchObject({ shipping: 1200, total: 15700 });
+    const noAddress = input({ fulfillment: { method: "delivery", address: "", location: near, buildingType: "house" } });
+    expectError(priceOrder(store, noAddress, OPEN), /dirección/);
     const small = input({
       lines: [{ productId: "papas-fritas", variantId: "chica", options: [], qty: 1 }],
-      fulfillment: { method: "delivery", address: "Italia 120", location: near, zoneId: "dentro-de-boulevard", buildingType: "house" },
+      fulfillment: { method: "delivery", address: "Italia 120", location: near, buildingType: "house" },
     });
     expectError(priceOrder(store, small, OPEN), /mínimo/);
   });

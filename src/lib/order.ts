@@ -60,14 +60,15 @@ function itemLines(items: CartItem[]): string[] {
   return lines;
 }
 
-function totalsLines(order: Order): string[] {
+function totalsLines(order: Order, business: Business): string[] {
   const { totals, coupon, fulfillment } = order;
   const lines = [`Subtotal: ${formatMoney(totals.subtotal)}`];
   if (coupon && totals.discount > 0) lines.push(`Descuento (${coupon.code}): -${formatMoney(totals.discount)}`);
   let shippingPending = false;
   if (fulfillment.method === "delivery") {
     shippingPending = fulfillment.cost === null;
-    const cost = fulfillment.cost === null ? "a coordinar" : fulfillment.cost === 0 ? "gratis" : formatMoney(fulfillment.cost);
+    const pending = business.delivery.zones.length ? "según la zona" : "a coordinar";
+    const cost = fulfillment.cost === null ? pending : fulfillment.cost === 0 ? "gratis" : formatMoney(fulfillment.cost);
     lines.push(`Envío: ${cost}`);
   }
   lines.push(`*TOTAL: ${formatMoney(totals.total)}${shippingPending ? " + envío" : ""}*`);
@@ -136,7 +137,7 @@ export function buildOrderMessage(order: Order, business: Business): string {
     RULE,
     ...itemLines(order.items),
     RULE,
-    ...totalsLines(order),
+    ...totalsLines(order, business),
     "",
     ...fulfillmentLines(order, business),
     "",

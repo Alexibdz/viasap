@@ -1,6 +1,6 @@
 "use client";
 
-import { Bicycle, GeoAltFill, PinMap, Shop, SignTurnRight } from "react-bootstrap-icons";
+import { Bicycle, GeoAltFill, Shop, SignTurnRight } from "react-bootstrap-icons";
 import { useStore } from "@/components/store/StoreProvider";
 import type { CheckoutDraft, CheckoutField, CheckoutSummary } from "@/lib/checkout";
 import { formatMoney } from "@/lib/format";
@@ -9,6 +9,7 @@ import { shippingFrom } from "@/lib/shipping";
 import type { BuildingType } from "@/lib/types";
 import AddressPicker from "./AddressPicker";
 import { Field, FieldError, Segmented, SelectCard } from "./FormParts";
+import ShippingPrices from "./ShippingPrices";
 
 const BUILDING_OPTIONS: { value: BuildingType; label: string }[] = [
   { value: "house", label: "Casa" },
@@ -79,6 +80,7 @@ export default function StepDelivery({ draft, summary, update, showErrors }: Ste
       {draft.method === "delivery" && (
         <section className="panel">
           <h2 className="panel-title">¿Adónde te lo llevamos?</h2>
+          <ShippingPrices />
           <div id="campo-address">
             <AddressPicker
               value={draft.address}
@@ -88,28 +90,7 @@ export default function StepDelivery({ draft, summary, update, showErrors }: Ste
             <FieldError message={error("address")} />
           </div>
 
-          {delivery.zones.length > 0 && (
-            <div className="field" id="campo-zone">
-              <span className="field-label" id="zona-label">
-                ¿En qué zona estás?
-              </span>
-              <div className="select-list" role="radiogroup" aria-labelledby="zona-label">
-                {delivery.zones.map((zone) => (
-                  <SelectCard
-                    key={zone.id}
-                    name="zona"
-                    selected={draft.zoneId === zone.id}
-                    onSelect={() => update({ zoneId: zone.id })}
-                    icon={<PinMap size={20} />}
-                    title={zone.name}
-                    subtitle={zone.cost ? `Envío ${formatMoney(zone.cost)}` : "Envío gratis"}
-                  />
-                ))}
-              </div>
-              <FieldError message={error("zone")} />
-            </div>
-          )}
-          {quote?.status === "to-agree" && (
+          {quote?.status === "to-agree" && delivery.zones.length === 0 && (
             <p className="shipping-line">
               <Bicycle aria-hidden /> El costo del envío lo coordinamos por WhatsApp.
             </p>

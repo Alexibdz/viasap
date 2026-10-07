@@ -144,7 +144,7 @@ describe("buildOrderMessage", () => {
     );
   });
 
-  it("incluye cupón, pago combinado, departamento y envío a coordinar", () => {
+  it("incluye cupón, pago combinado, departamento y envío según la zona", () => {
     const message = buildOrderMessage(
       makeOrder({
         fulfillment: {
@@ -166,7 +166,13 @@ describe("buildOrderMessage", () => {
     expect(message).toContain("*Pago:* efectivo + transferencia\nEfectivo: $5.000 · Transferencia: $8.050");
     expect(message).toContain("Departamento: piso 3, depto B · Ref.: portón verde");
     expect(message).not.toContain("Ubicación:");
-    expect(message).toContain("Descuento (BIENVENIDA): -$1.450\nEnvío: a coordinar\n*TOTAL: $13.050 + envío*");
+    expect(message).toContain("Descuento (BIENVENIDA): -$1.450\nEnvío: según la zona\n*TOTAL: $13.050 + envío*");
+    // Sin zonas cargadas, se coordina.
+    const noZones = { ...business, delivery: { ...business.delivery, zones: [] } };
+    const pending = makeOrder({
+      fulfillment: { method: "delivery", address: "Italia 120", location: null, buildingType: "house", cost: null },
+    });
+    expect(buildOrderMessage(pending, noZones)).toContain("Envío: a coordinar");
   });
 });
 

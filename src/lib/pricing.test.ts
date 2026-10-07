@@ -86,12 +86,13 @@ describe("envíos", () => {
     ],
   };
 
-  it("cotiza según la zona que elige el cliente", () => {
-    expect(quoteShipping(delivery, null)).toEqual({ status: "pending" });
-    expect(quoteShipping(delivery, "no-existe")).toEqual({ status: "pending" });
-    expect(quoteShipping(delivery, "dentro")).toMatchObject({ status: "ok", cost: 1000, zone: { name: "Dentro de boulevard" } });
-    expect(quoteShipping(delivery, "fuera")).toMatchObject({ status: "ok", cost: 1500 });
-    expect(quoteShipping({ ...delivery, zones: [] }, "dentro")).toEqual({ status: "to-agree" });
+  it("el cliente no elige zona: si el precio cambia según la zona, lo confirma el local", () => {
+    expect(quoteShipping(delivery)).toEqual({ status: "to-agree" });
+    expect(quoteShipping({ ...delivery, zones: [] })).toEqual({ status: "to-agree" });
+    // Con un solo precio (una zona o todas iguales) ya se sabe y va en el total.
+    expect(quoteShipping({ ...delivery, zones: [delivery.zones[1]] })).toEqual({ status: "ok", cost: 1500 });
+    const same = delivery.zones.map((zone) => ({ ...zone, cost: 800 }));
+    expect(quoteShipping({ ...delivery, zones: same })).toEqual({ status: "ok", cost: 800 });
   });
 
   it("resume el envío más barato para la portada", () => {

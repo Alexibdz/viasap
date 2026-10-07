@@ -45,8 +45,9 @@ export default function DeliveryForm({ business }: { business: Business }) {
         <>
           <h3 className="adm-subheading">Zonas de envío</h3>
           <p className="adm-hint">
-            Por ejemplo, dentro y fuera de boulevard. El cliente elige su zona al hacer el pedido y ve el costo. Sin zonas,
-            el costo se arregla por WhatsApp.
+            Por ejemplo, dentro y fuera de boulevard. Al pedir, el cliente ve los precios (no elige la zona): si cambian
+            según la zona, le confirmás el envío por WhatsApp. Con un solo precio, se suma solo. Sin zonas, se arregla
+            por WhatsApp.
           </p>
           <div className="adm-rows">
             {value.zones.map((zone, index) => (

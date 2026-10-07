@@ -45,13 +45,24 @@ export default function OrderTicket({ draft, summary }: { draft: CheckoutDraft; 
           )}
           {draft.method === "delivery" && (
             <div>
-              <dt>Envío{quote?.status === "ok" && ` (${quote.zone.name.toLowerCase()})`}</dt>
-              <dd>{quote?.status === "ok" ? formatMoney(quote.cost) : "A coordinar"}</dd>
+              <dt>Envío</dt>
+              <dd>
+                {quote?.status === "ok"
+                  ? quote.cost
+                    ? formatMoney(quote.cost)
+                    : "Gratis"
+                  : business.delivery.zones.length
+                    ? "Según tu zona"
+                    : "A coordinar"}
+              </dd>
             </div>
           )}
           <div className="ticket-total">
             <dt>Total</dt>
-            <dd>{formatMoney(summary.total)}</dd>
+            <dd>
+              {formatMoney(summary.total)}
+              {draft.method === "delivery" && quote?.status === "to-agree" && <small> + envío</small>}
+            </dd>
           </div>
         </dl>
         <div className="ticket-rule" />

@@ -12,7 +12,6 @@ const base: CheckoutDraft = {
   phone: "343 412 3456",
   method: "pickup",
   address: null,
-  zoneId: null,
   buildingType: "house",
   floor: "",
   apartment: "",
@@ -22,11 +21,7 @@ const base: CheckoutDraft = {
   coupon: null,
 };
 
-const delivery = (address: CheckoutDraft["address"], zoneId: string | null = "dentro-de-boulevard"): Partial<CheckoutDraft> => ({
-  method: "delivery",
-  address,
-  zoneId,
-});
+const delivery = (address: CheckoutDraft["address"]): Partial<CheckoutDraft> => ({ method: "delivery", address });
 
 describe("evaluateCheckout", () => {
   it("con retiro en el local y efectivo no hay nada que corregir", () => {
@@ -43,7 +38,7 @@ describe("evaluateCheckout", () => {
     expect(maxReachableStep(summary.errors)).toBe(2);
   });
 
-  it("cotiza el envío según la zona elegida y valida la ubicación", () => {
+  it("valida la ubicación; el envío según la zona lo confirma el local", () => {
     const withoutPin = evaluateCheckout(
       { ...base, ...delivery({ label: "Italia 120", location: null, approximate: true }) },
       10000,
@@ -52,41 +47,26 @@ describe("evaluateCheckout", () => {
     );
     expect(withoutPin.errors.address).toBe("Marcá tu ubicación en el mapa.");
 
-    const inside = evaluateCheckout(
+    // Zonas con precios distintos: no se elige la zona y el total va sin envío.
+    const byZone = evaluateCheckout(
       { ...base, ...delivery({ label: "Italia 120", location: pin, approximate: false }) },
       10000,
       business,
       true,
     );
-    expect(inside.errors).toEqual({});
-    expect(inside.shipping).toBe(1000);
-    expect(inside.total).toBe(11000);
+    expect(byZone.errors).toEqual({});
+    expect(byZone.quote).toEqual({ status: "to-agree" });
+    expect(byZone.total).toBe(10000);
 
-    const outside = evaluateCheckout(
-      { ...base, ...delivery({ label: "Ruta 11", location: pin, approximate: false }, "fuera-de-boulevard") },
+    // Un solo precio: se suma al total.
+    const fixed = evaluateCheckout(
+      { ...base, ...delivery({ label: "Italia 120", location: pin, approximate: false }) },
       10000,
-      business,
+      { ...business, delivery: { ...business.delivery, zones: [{ id: "victoria", name: "Victoria", cost: 1500 }] } },
       true,
     );
-    expect(outside.shipping).toBe(2000);
-
-    const noZone = evaluateCheckout(
-      { ...base, ...delivery({ label: "Italia 120", location: pin, approximate: false }, null) },
-      10000,
-      business,
-      true,
-    );
-    expect(noZone.errors.zone).toBe("Elegí tu zona de envío.");
-    expect(stepIsValid(2, noZone.errors)).toBe(false);
-
-    const toAgree = evaluateCheckout(
-      { ...base, ...delivery({ label: "Italia 120", location: pin, approximate: false }, null) },
-      10000,
-      { ...business, delivery: { ...business.delivery, zones: [] } },
-      true,
-    );
-    expect(toAgree.errors).toEqual({});
-    expect(toAgree.quote).toEqual({ status: "to-agree" });
+    expect(fixed.shipping).toBe(1500);
+    expect(fixed.total).toBe(11500);
   });
 
   it("exige pedido mínimo y piso o depto para envíos", () => {

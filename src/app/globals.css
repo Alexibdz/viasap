@@ -2477,6 +2477,24 @@ textarea.input {
   filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.35));
 }
 
+/* Precios del envío por zona, arriba de la dirección (el cliente no elige la zona). */
+.shipping-prices {
+  margin-bottom: 16px;
+  padding: 12px 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+
+.shipping-prices .field-label {
+  margin: 0 6px 4px;
+}
+
+.shipping-prices-note {
+  margin: 6px 10px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .shipping-line {
   display: flex;
   align-items: center;
@@ -2746,6 +2764,12 @@ textarea.input {
 .ticket-total dd {
   color: var(--ink);
   font-weight: 900;
+}
+
+.ticket-total small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .ticket-meta {
