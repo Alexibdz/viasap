@@ -563,7 +563,7 @@ export default function ProductEditor({
                   checked={draft.featured}
                   onChange={(featured) => update({ featured })}
                   label="Destacada"
-                  description='También aparece arriba, en el carrusel de "Ofertas destacadas".'
+                  description="También aparece arriba, en el carrusel de ofertas."
                 />
               )}
             </div>

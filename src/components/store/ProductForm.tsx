@@ -160,11 +160,6 @@ export default function ProductForm({ context, layout, onAdded, onClose }: Produ
                   </li>
                 ))}
               </ul>
-              {offer.savings > 0 && (
-                <p className="pf-offer-save">
-                  Por separado <s>{formatMoney(offer.regularPrice)}</s> · Ahorrás {formatMoney(offer.savings)}
-                </p>
-              )}
             </section>
           )}
 

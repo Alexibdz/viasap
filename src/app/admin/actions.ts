@@ -6,7 +6,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   applyCategory,
-  buildAppearance,
   buildCoupon,
   buildDelivery,
   buildPayments,
@@ -249,17 +248,6 @@ export async function savePaymentSettings(input: unknown): Promise<ActionResult>
     const result = buildPayments(input);
     if (!result.ok) return { ok: false, errors: result.errors };
     store.business.payments = result.value;
-    return { ok: true };
-  });
-}
-
-export async function saveAppearance(input: unknown): Promise<ActionResult> {
-  return editStore((store) => {
-    const result = buildAppearance(input);
-    if (!result.ok) return { ok: false, errors: result.errors };
-    store.business.theme = result.value.theme;
-    store.business.logoUrl = result.value.logoUrl;
-    store.business.coverUrl = result.value.coverUrl;
     return { ok: true };
   });
 }

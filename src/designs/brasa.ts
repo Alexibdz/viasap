@@ -1,0 +1,53 @@
+import type { StoreDesign } from "./index";
+
+/**
+ * "Brasa unificada" (Costanera Burgers): oscuro, con el naranja de marca de fondo en los
+ * botones y las ofertas. Instrument Serif para el nombre, Space Mono para las etiquetas,
+ * Instrument Sans para el estado y Archivo para el resto. Sin sombras ni gradientes.
+ */
+export const brasa: StoreDesign = {
+  id: "brasa",
+  theme: { primary: "#f29100", accent: "#f29100" },
+  themeColor: "#15110e",
+  products: "tiles",
+  tokens: {
+    "--paper": "#15110e",
+    "--paper-deep": "#2a211b",
+    "--card": "#241c17",
+    "--ink": "#f3eadc",
+    "--ink-2": "#d8ccbb",
+    "--muted": "#b9ad9e",
+    "--line": "#3a2f27",
+    "--line-strong": "#4d3f34",
+    "--brand-ink": "#15110e",
+    "--brand-press": "#d98200",
+    "--brand-wash": "#33261b",
+    "--brand-line": "#6b4a1e",
+    "--accent-ink": "#15110e",
+    "--ok": "#3fb27f",
+    "--ok-wash": "#16301f",
+    "--danger": "#e5482a",
+    "--danger-wash": "#3a1d16",
+    "--warn": "#f2b631",
+    "--warn-wash": "#33270f",
+    "--closed": "#e5482a",
+    "--open": "#3fb27f",
+    "--img-ph": "#2a211b",
+    "--ticket": "#241c17",
+    "--shadow-1": "none",
+    "--shadow-2": "0 0 0 1px #3a2f27",
+    "--font-text": "var(--font-archivo)",
+    "--font-heading": "var(--font-archivo)",
+    "--font-name": "var(--font-instrument-serif)",
+    "--font-label": "var(--font-space-mono)",
+    "--font-status": "var(--font-instrument-sans)",
+    "--font-strong": "var(--font-archivo)",
+    "--name-size": "72px",
+    "--name-fit": "0.42",
+    "--r-status": "16px",
+    "--r-chip": "14px",
+    "--r-offer": "22px",
+    "--r-tile": "18px",
+    "--r-btn": "12px",
+  },
+};

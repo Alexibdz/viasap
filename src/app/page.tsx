@@ -42,10 +42,10 @@ export default async function Home() {
         <div className="store-tiles">
           {businesses.map((business) => (
             <Link key={business.slug} href={`/${business.slug}`} className="store-tile">
-              {/* Sin foto para compartir, el logo entero sobre fondo oscuro (como en la portada de la tienda). */}
-              <span className={`store-tile-cover${business.coverUrl ? "" : " store-tile-cover--logo"}`}>
+              {/* El logo entero sobre fondo oscuro. */}
+              <span className="store-tile-cover">
                 <Image
-                  src={business.coverUrl ?? business.logoUrl}
+                  src={business.logoUrl}
                   alt=""
                   fill
                   sizes="(max-width: 700px) 100vw, 360px"

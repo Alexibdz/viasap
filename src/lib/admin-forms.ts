@@ -10,12 +10,11 @@ import type {
   OptionGroup,
   PaymentSettings,
   Product,
-  Theme,
   TimeRange,
   Weekday,
   WeeklySchedule,
 } from "./types";
-import { cleanMultiline, cleanText, HEX_COLOR, toAmount, toInt, uniqueId } from "./validation";
+import { cleanMultiline, cleanText, toAmount, toInt, uniqueId } from "./validation";
 
 // Validación de los formularios del panel. Reciben lo que manda el navegador (no
 // confiable) y devuelven datos limpios o errores por campo ("variants.0.price").
@@ -404,12 +403,11 @@ export function removeCategory(menu: Category[], categoryId: string): FormResult
 
 export function buildStoreInfo(
   input: unknown,
-): FormResult<Pick<Business, "name" | "description" | "highlight" | "whatsapp" | "instagram" | "address">> {
+): FormResult<Pick<Business, "name" | "description" | "whatsapp" | "instagram" | "address">> {
   const errors: FieldErrors = {};
   const name = cleanText(field(input, "name"), 60);
   if (name.length < 2) errors.name = "Escribí el nombre del local.";
   const description = cleanText(field(input, "description"), 200);
-  const highlight = cleanText(field(input, "highlight"), 80);
   const whatsapp = toWhatsAppNumber(cleanText(field(input, "whatsapp"), 30));
   if (!/^\d{10,15}$/.test(whatsapp)) errors.whatsapp = "Revisá el número (con característica, sin 0 ni 15).";
   const instagram = cleanText(field(input, "instagram"), 31).replace(/^@/, "");
@@ -430,7 +428,6 @@ export function buildStoreInfo(
     {
       name,
       description: description || undefined,
-      highlight: highlight || undefined,
       whatsapp,
       instagram: instagram || undefined,
       address: { street, city, province, lat: validPoint ? lat : 0, lng: validPoint ? lng : 0 },
@@ -513,20 +510,6 @@ export function buildPayments(input: unknown): FormResult<PaymentSettings> {
   if (!cash && !transfer) errors.methods = "Activá al menos una forma de pago.";
   const mixed = field(input, "mixed") === true && cash && Boolean(transfer);
   return done({ cash, transfer, mixed }, errors);
-}
-
-export function buildAppearance(
-  input: unknown,
-): FormResult<{ theme: Theme; logoUrl: string; coverUrl?: string }> {
-  const errors: FieldErrors = {};
-  const primary = cleanText(field(input, "primary"), 7);
-  const accent = cleanText(field(input, "accent"), 7);
-  if (!HEX_COLOR.test(primary)) errors.primary = "Elegí un color.";
-  if (!HEX_COLOR.test(accent)) errors.accent = "Elegí un color.";
-  const logoUrl = cleanImageUrl(field(input, "logoUrl"));
-  if (!logoUrl) errors.logoUrl = "Subí el logo del local.";
-  const coverUrl = cleanImageUrl(field(input, "coverUrl"));
-  return done({ theme: { primary: primary.toLowerCase(), accent: accent.toLowerCase() }, logoUrl: logoUrl ?? "", coverUrl }, errors);
 }
 
 /* -------------------------------------------------------------------- Cupones */

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { Business } from "@/lib/types";
-import AppearanceForm from "./AppearanceForm";
 import DeliveryForm from "./DeliveryForm";
 import PaymentsForm from "./PaymentsForm";
 import ScheduleForm from "./ScheduleForm";
@@ -13,7 +12,6 @@ const TABS = [
   { id: "horarios", label: "Horarios" },
   { id: "entregas", label: "Entregas" },
   { id: "pagos", label: "Pagos" },
-  { id: "apariencia", label: "Apariencia" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -46,7 +44,6 @@ export default function SettingsTabs({ business }: { business: Business }) {
       {tab === "horarios" && <ScheduleForm business={business} />}
       {tab === "entregas" && <DeliveryForm business={business} />}
       {tab === "pagos" && <PaymentsForm business={business} />}
-      {tab === "apariencia" && <AppearanceForm business={business} />}
     </div>
   );
 }

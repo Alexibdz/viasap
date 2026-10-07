@@ -7,7 +7,6 @@ import { stores } from "./index";
 
 // Chequeos de los datos cargados a mano, para detectar errores antes de publicar.
 
-const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -28,7 +27,6 @@ describe.each(stores.map((store) => [store.business.slug, store] as [string, Sto
   it("tiene datos de negocio válidos", () => {
     expect(business.slug).toMatch(SLUG);
     expect(business.whatsapp).toMatch(/^\d{10,15}$/);
-    expect(Object.values(business.theme).every((color) => HEX_COLOR.test(color))).toBe(true);
     expect(Object.keys(business.schedule)).toHaveLength(7);
     for (const ranges of Object.values(business.schedule)) {
       for (const range of ranges) {
@@ -93,7 +91,6 @@ describe.each(stores.map((store) => [store.business.slug, store] as [string, Sto
   it("referencia imágenes que existen en /public", () => {
     const urls = [
       business.logoUrl,
-      business.coverUrl,
       ...menu.map((c) => c.imageUrl),
       ...products.map((p) => p.imageUrl),
     ].filter((url): url is string => Boolean(url));

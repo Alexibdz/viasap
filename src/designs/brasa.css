@@ -1,0 +1,44 @@
+/* ==========================================================================
+   "Brasa unificada" (Costanera Burgers)
+   Los colores, las fuentes y los radios están en brasa.ts. Acá va solo lo que
+   cambia de forma: el nombre en cursiva naranja y, adentro de cada categoría,
+   los productos en tiles.
+   ========================================================================== */
+[data-design="brasa"] .store-name-last {
+  color: var(--brand);
+  font-style: italic;
+}
+
+[data-design="brasa"] .store-tagline {
+  font-family: var(--font-name), serif;
+  font-style: italic;
+}
+
+[data-design="brasa"] .menu-category-emoji {
+  background: var(--paper);
+}
+
+/* Tiles adentro de la tarjeta de la categoría: más oscuros que la tarjeta, para separarse. */
+[data-design="brasa"] .menu-category-body {
+  padding: 14px 12px 12px;
+}
+
+[data-design="brasa"] .menu-category .tile-link {
+  background: var(--paper);
+}
+
+[data-design="brasa"] .menu-category .menu-group-title {
+  margin: 0 2px 10px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+[data-design="brasa"] .menu-category .menu-group + .menu-group {
+  margin-top: 16px;
+  padding-top: 14px;
+}
+
+[data-design="brasa"] .store-footer {
+  border-top-style: solid;
+  border-top-color: var(--line);
+}

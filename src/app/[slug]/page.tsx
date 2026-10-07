@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JournalText } from "react-bootstrap-icons";
-import FeaturedRail from "@/components/store/FeaturedRail";
 import MenuSection from "@/components/store/MenuSection";
-import StoreHero from "@/components/store/StoreHero";
+import OffersCarousel from "@/components/store/OffersCarousel";
+import StoreHeader from "@/components/store/StoreHeader";
+import { designFor } from "@/designs";
 import { getBusiness, getMenu } from "@/lib/data";
 import { featuredOffers, listedCategories, menuOffers } from "@/lib/menu";
 
@@ -16,10 +17,11 @@ export default async function StorePage({ params }: PageProps<"/[slug]">) {
   const offers = menuOffers(menu);
   // Las ofertas van en el carrusel de arriba: su categoría no se repite en la lista.
   const categories = listedCategories(menu);
+  const { products: layout } = designFor(slug);
 
   return (
     <div className="storefront">
-      <StoreHero />
+      <StoreHeader />
       <main className="menu">
         {menu.length === 0 && (
           <div className="empty-state">
@@ -27,11 +29,11 @@ export default async function StorePage({ params }: PageProps<"/[slug]">) {
             <p>Estamos armando el menú. Volvé en un rato.</p>
           </div>
         )}
-        {featured.length > 0 && <FeaturedRail slug={slug} items={featured} offers={offers} />}
+        {featured.length > 0 && <OffersCarousel slug={slug} items={featured} offers={offers} />}
         {categories.length > 0 && (
           <section className="menu-categories" aria-label="Menú">
             {categories.map((category) => (
-              <MenuSection key={category.id} slug={slug} category={category} offers={offers} />
+              <MenuSection key={category.id} slug={slug} category={category} offers={offers} layout={layout} />
             ))}
           </section>
         )}

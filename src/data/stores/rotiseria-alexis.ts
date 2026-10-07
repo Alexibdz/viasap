@@ -79,7 +79,6 @@ export const rotiseriaAlexis: StoreSeed = {
     slug: "rotiseria-alexis",
     name: "Rotisería Alexis",
     description: "Parrilla, pizzas, hamburguesas, torpedos, milanesas, empanadas XXL y pastas.",
-    highlight: "Todo se elabora en el momento: el que sabe comer, sabe esperar.",
     logoUrl: "/demo/logos/rotiseria-alexis.png",
     whatsapp: "5493436617446",
     address: {
@@ -106,7 +105,6 @@ export const rotiseriaAlexis: StoreSeed = {
       ],
     },
     acceptOrdersWhenClosed: true,
-    theme: { primary: "#f29100", accent: "#ffd43b" },
     delivery: {
       pickup: true,
       delivery: true,

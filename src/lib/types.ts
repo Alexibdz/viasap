@@ -13,7 +13,7 @@ export interface TimeRange {
 
 export type WeeklySchedule = Record<Weekday, TimeRange[]>;
 
-/** Colores en hex de 6 dígitos (#e8590c). */
+/** Colores en hex de 6 dígitos (#e8590c). Los define el diseño de cada negocio (src/designs). */
 export interface Theme {
   /** Color de marca: botones, pestaña activa, selecciones. */
   primary: string;
@@ -68,12 +68,8 @@ export interface Business {
   slug: string;
   name: string;
   description?: string;
-  /** Frase resaltada en amarillo después de la descripción ("Todas las burgers vienen con papas."). */
-  highlight?: string;
-  /** Se muestra grande en la portada de la tienda. */
+  /** Va arriba en la tienda y es también la imagen de la vista previa al compartir el link. */
   logoUrl: string;
-  /** Imagen para la vista previa al compartir el link (WhatsApp, Instagram). */
-  coverUrl?: string;
   /** WhatsApp en formato internacional, solo dígitos: 5493436123456. */
   whatsapp: string;
   instagram?: string;
@@ -84,7 +80,6 @@ export interface Business {
   acceptOrdersWhenClosed: boolean;
   /** Pausa manual desde el panel ("no tomamos pedidos por un rato"), sin importar el horario. */
   ordersPaused?: boolean;
-  theme: Theme;
   delivery: DeliverySettings;
   payments: PaymentSettings;
 }

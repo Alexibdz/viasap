@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatMoney } from "@/lib/format";
 import { isQuickAdd } from "@/lib/menu";
-import { offerIncludesText, savingsPercent } from "@/lib/offers";
+import { offerIncludesText } from "@/lib/offers";
 import { priceFrom, showsPriceFrom } from "@/lib/pricing";
 import type { OfferInfo, Product } from "@/lib/types";
 import { CardPlus, QuickAddButton } from "./CardActions";
@@ -19,18 +19,11 @@ interface ProductCardProps {
 
 export default function ProductCard({ slug, product, sectionLabel, offer, isOffer = Boolean(offer) }: ProductCardProps) {
   const quick = isQuickAdd(product);
-  const percent = offer ? savingsPercent(offer) : 0;
   // Con foto, la etiqueta va sobre la foto; sin foto, al lado del precio (arriba chocaría con el "+").
   const badge =
     isOffer && !product.soldOut ? (
       <span className={`product-card-badge${product.imageUrl ? "" : " product-card-badge--inline"}`}>
-        {percent > 0 ? (
-          <>
-            <span className="visually-hidden">Ahorrás un </span>-{percent}%
-          </>
-        ) : (
-          "Oferta"
-        )}
+        Oferta
       </span>
     ) : null;
   const classes = [
@@ -59,7 +52,6 @@ export default function ProductCard({ slug, product, sectionLabel, offer, isOffe
               <>
                 {showsPriceFrom(product) && <small>desde</small>}
                 {formatMoney(priceFrom(product))}
-                {offer && offer.savings > 0 && <s className="product-card-was">{formatMoney(offer.regularPrice)}</s>}
                 {!product.imageUrl && badge}
               </>
             )}

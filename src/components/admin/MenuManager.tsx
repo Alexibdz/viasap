@@ -189,8 +189,8 @@ export default function MenuManager({ menu }: { menu: Category[] }) {
                               type="button"
                               className={`adm-star${product.featured ? " is-on" : ""}`}
                               aria-pressed={Boolean(product.featured)}
-                              aria-label={product.featured ? "Quitar de ofertas destacadas" : "Destacar oferta"}
-                              title='Destacada en "Ofertas destacadas"'
+                              aria-label={product.featured ? "Quitar del carrusel de ofertas" : "Destacar en el carrusel de ofertas"}
+                              title="Destacada en el carrusel de ofertas"
                               onClick={() =>
                                 run(
                                   { type: "flags", productId: product.id, flags: { featured: !product.featured } },

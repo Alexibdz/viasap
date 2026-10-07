@@ -1,7 +1,6 @@
 // Limpieza de datos que llegan del navegador (formularios del panel y pedidos).
 // Todo lo que viene del cliente se trata como no confiable.
 
-export const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 export const SAFE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Texto de una línea: sin espacios repetidos y con largo máximo. */

@@ -1,17 +1,22 @@
 import { ChevronDown } from "react-bootstrap-icons";
 import { categoryProducts, isOfferProduct, sectionLabel, showsSubcategoryName } from "@/lib/menu";
+import type { ProductLayout } from "@/designs";
 import type { Category, OfferInfo } from "@/lib/types";
 import CategoryDetails from "./CategoryDetails";
 import ProductCard from "./ProductCard";
+import ProductTile from "./ProductTile";
 
 interface MenuSectionProps {
   slug: string;
   category: Category;
   /** Lo que incluye cada oferta del menú, por id de producto. */
   offers: Record<string, OfferInfo>;
+  /** Tiles con foto o filas en lista: lo decide el diseño del negocio. */
+  layout: ProductLayout;
 }
 
-export default function MenuSection({ slug, category, offers }: MenuSectionProps) {
+export default function MenuSection({ slug, category, offers, layout }: MenuSectionProps) {
+  const Product = layout === "tiles" ? ProductTile : ProductCard;
   const count = categoryProducts(category).length;
   const unit = category.kind === "offers" ? (count === 1 ? "oferta" : "ofertas") : count === 1 ? "opción" : "opciones";
 
@@ -37,9 +42,9 @@ export default function MenuSection({ slug, category, offers }: MenuSectionProps
       {category.subcategories.map((subcategory) => (
         <div key={subcategory.id} className="menu-group">
           {showsSubcategoryName(category, subcategory) && <h3 className="menu-group-title">{subcategory.name}</h3>}
-          <div className="product-grid">
+          <div className={layout === "tiles" ? "tile-grid" : "product-grid"}>
             {subcategory.products.map((product) => (
-              <ProductCard
+              <Product
                 key={product.id}
                 slug={slug}
                 product={product}

@@ -45,12 +45,14 @@ Entrá a `/admin` (te lleva a `/admin/ingresar`). Cuentas de prueba, con contras
   Cada categoría lleva un emoji de decoración (🍕) y en la tienda se despliega al tocarla, con los productos
   adentro; con "Desplegada al entrar" arranca abierta. Las que no tienen productos no se muestran.
   Una categoría puede ser **de ofertas**: no se lista como categoría, sus productos van arriba en el carrusel
-  "Ofertas destacadas" y se arman con el **armador de ofertas** (productos del menú, presentación y cantidad); la
-  tienda muestra qué incluye, el precio por separado y el ahorro. Una oferta también puede estar dentro de cualquier
+  de ofertas y se arman con el **armador de ofertas** (productos del menú, presentación y cantidad); la
+  tienda muestra qué incluye, con la etiqueta "Oferta" (sin % ni precio tachado; el panel sí muestra cuánto se
+  ahorra, para armarla). Una oferta también puede estar dentro de cualquier
   categoría ("Es una oferta o promo", por ejemplo las promos de pizzas dentro de Pizzas); si se marca como
   **destacada**, además aparece en el carrusel. Un producto incluido en una oferta no se puede borrar sin sacarlo
   antes de la oferta.
-- **Cupones** y **Ajustes** (datos del local, horarios, entregas, pagos y apariencia).
+- **Cupones** y **Ajustes** (datos del local, horarios, entregas y pagos). El logo, los colores y las fuentes no
+  se configuran desde el panel: son parte del diseño del local (ver "Diseño de cada local").
 - **Pausar pedidos:** el interruptor "Recibiendo pedidos" corta los pedidos por un rato, sin tocar el horario.
 
 ## Tiendas de ejemplo
@@ -58,7 +60,7 @@ Entrá a `/admin` (te lleva a `/admin/ingresar`). Cuentas de prueba, con contras
 | Link | Qué muestra | Cupones |
 | --- | --- | --- |
 | `/rotiseria-alexis` | Rotisería Alexis: parrilla, pizzas y promos, hamburguesas, panchos, torpedos, sándwiches, minutas, pastas, empanadas XXL, rabas, bebidas y postres, todo sin fotos; ofertas y envío dentro / fuera de boulevard y zona rural. Acepta pedidos con el local cerrado. | `BIENVENIDA` (10 %), `FINDE2000` ($2.000 desde $15.000) |
-| `/costanera-burgers` | Costanera Burgers, en la costanera de Victoria: hamburguesas smash, papas y ensaladas, todo con fotos; combo destacado. | `BIENVENIDA` (10 %), `FINDE2000` ($2.000 desde $15.000) |
+| `/costanera-burgers` | Costanera Burgers, en la costanera de Victoria: hamburguesas smash, torpedos, panchos, papas y ensaladas (torpedos y panchos todavía sin foto); tres ofertas en el carrusel. Diseño "Brasa" (oscuro, productos en tiles). | `BIENVENIDA` (10 %), `FINDE2000` ($2.000 desde $15.000) |
 
 El catálogo de Rotisería Alexis y sus precios salen de dos listas reales que las rotiserías mandan por WhatsApp (donde
 un producto estaba en las dos, quedó el precio de Rotisería Alexis). Las fotos de ejemplo están todas en Costanera
@@ -69,13 +71,30 @@ real del producto antes que una de referencia. Fotos de ejemplo: Unsplash.
 
 ## Sumar una tienda
 
-1. Copiá `src/data/stores/rotiseria-alexis.ts` y cambiá slug, datos, colores (`theme`), horarios, zonas de envío,
-   formas de pago, cupones y menú.
+1. Copiá `src/data/stores/rotiseria-alexis.ts` y cambiá slug, datos, horarios, zonas de envío, formas de pago,
+   cupones y menú. Sin diseño propio usa el de base; para darle uno, ver "Diseño de cada local".
 2. Agregala a la lista de `src/data/stores/index.ts`.
 3. Las fotos van en `public/` (para usar URLs externas hay que configurar `images.remotePatterns`).
 4. Poné el email del panel y el hash de su contraseña en `admin`. Para generar el hash:
    `node -e 'const c=require("crypto"),s=c.randomBytes(16);console.log("scrypt$"+s.toString("base64url")+"$"+c.scryptSync(process.argv[1],s,64).toString("base64url"))' "la-contraseña"`
-5. `npm test` revisa ids repetidos, precios, horarios, colores y que las imágenes existan.
+5. `npm test` revisa ids repetidos, precios, horarios y que las imágenes existan.
+
+## Diseño de cada local
+
+Cada local tiene su diseño, armado en el código (el local no elige colores ni fuentes). La estructura y el
+comportamiento son los mismos para todos: cabecera, carrusel de ofertas, categorías desplegables, barra del pedido,
+producto y checkout. El diseño cambia cómo se ven:
+
+- `src/designs/<diseño>.ts`: color de marca, variables CSS (fondo, superficies, texto, estados, fuentes y radios),
+  color de la barra del navegador y cómo se muestran los productos (`tiles` con foto o `rows` en lista). Las
+  variables pisan las de `globals.css` en `:root`, así las toman también las hojas y el checkout.
+- `src/designs/<diseño>.css`: lo que cambia de forma, todo bajo `[data-design="<id>"]`.
+- `src/designs/index.ts`: qué diseño usa cada local (por slug). Las fuentes se cargan en `src/designs/fonts.ts`.
+
+| Local | Diseño |
+| --- | --- |
+| Costanera Burgers | **Brasa**: oscuro, Instrument Serif para el nombre (la última palabra en cursiva naranja), Space Mono para las etiquetas; categorías en tarjetas con emoji que se despliegan, con los productos en tiles de a dos. Hamburguesas arranca abierta. |
+| Rotisería Alexis | **Tipográfico**: papel cálido, el nombre en Anton con la última palabra resaltada en amarillo, categorías en tarjetas con emoji y productos en lista. |
 
 ## Cómo está armado
 
@@ -83,7 +102,7 @@ real del producto antes que una de referencia. Fotos de ejemplo: Unsplash.
 src/
   app/
     page.tsx                         portada de la plataforma
-    [slug]/page.tsx                  menú del local: portada, "Ofertas destacadas" y categorías desplegables
+    [slug]/page.tsx                  menú del local: cabecera, carrusel de ofertas y categorías desplegables
     [slug]/@modal/(.)producto/[id]/  producto como hoja sobre el menú (ruta interceptada, con URL propia)
     [slug]/producto/[id]/            producto como página completa (link directo o compartido)
     [slug]/pedido/                   checkout en 3 pasos (?paso=2, ?paso=3)
@@ -93,7 +112,9 @@ src/
     api/admin/pedidos/               pedidos del local para el tablero (se consulta cada 8 s)
     api/pedidos/[code]/              estado de un pedido para la pantalla del cliente
     media/[...path]/                 fotos subidas desde el panel
-  components/store/                  tienda, producto, horarios y envíos
+  components/store/                  tienda (cabecera, ofertas, categorías, tiles o filas, barra del pedido),
+                                     producto, horarios y envíos
+  designs/                           diseño de cada local: variables (.ts) y estilos propios (.css)
   components/checkout/               pasos del pedido, mapa, ticket, pantalla final
   components/admin/                  panel (estilos en app/admin/admin.css, clases adm-*)
   lib/
@@ -104,8 +125,8 @@ src/
     admin-forms.ts   validación de los formularios del panel
     checkout.ts      totales y validaciones de cada paso
     shipping.ts      costo de envío según la zona que elige el cliente
-    offers.ts        qué incluye cada oferta, precio por separado y ahorro
-    hero.ts          renglones del nombre en la portada
+    offers.ts        qué incluye cada oferta (y el ahorro, que solo ve el panel)
+    hero.ts          nombre de la cabecera (última palabra aparte y tamaño para que entre)
     store-upgrade.ts actualiza tiendas guardadas con un formato anterior
     hours.ts         abierto/cerrado según horario y zona horaria del local
     cart.ts          carrito por tienda en localStorage
@@ -118,9 +139,11 @@ Algunas decisiones:
 - El carrito se guarda en el navegador, por tienda. Nombre, teléfono y dirección se recuerdan para el próximo pedido.
 - El envío se cobra por zonas con nombre (dentro de boulevard, fuera de boulevard, zona rural…): el cliente elige
   la suya al pedir y ve el costo. No se calcula la distancia; el mapa queda para que el local encuentre la casa.
-- La portada usa el logo (no una foto de fondo) y las fuentes Anton y Archivo. Sus etiquetas abren una hoja
-  para cada cosa: el horario ("Abierto · cierra 00:30" / "Cerrado · abre hoy 20:00") y los envíos. Con el local cerrado aparece una cinta
-  animada (quieta si el sistema pide menos movimiento). La "foto para compartir" solo se usa en las vistas previas.
+- La cabecera es la misma para todos: logo, ciudad, nombre (la última palabra en su renglón), descripción, la
+  tarjeta de estado ("Abierto ahora · Cierra a las 00:30", "Cerrado ahora · Abre hoy a las 20:00" o "Pedidos en
+  pausa"), que abre los horarios, y las etiquetas de envío (abre las zonas) y retiro (abre el mapa). La barra del
+  pedido aparece abajo con el primer producto y lleva al pedido. La vista previa al compartir
+  el link (WhatsApp, Instagram) muestra el logo.
 - Los cupones se validan en el servidor; la lista nunca llega al navegador.
 - El mensaje no usa emojis: algunos llegan rotos en los links `wa.me`.
 - Nominatim es gratis pero limitado (1 consulta por segundo). Para producción conviene Google Places,

@@ -83,23 +83,43 @@ export function getOpenStatus(schedule: WeeklySchedule, timeZone: string, date: 
   return { open: false, nextOpening: null };
 }
 
-/** "Abierto · cierra a las 00:30" / "Abrimos hoy a las 20:00". */
+/** "a las 20:00", o "a la 01:30" (la una). */
+export function atTime(time: string): string {
+  return time.startsWith("01:") ? `a la ${time}` : `a las ${time}`;
+}
+
+function openingDay(next: { day: Weekday; daysAhead: number }): string {
+  if (next.daysAhead === 0) return "hoy";
+  if (next.daysAhead === 1) return "mañana";
+  return `el ${WEEKDAY_NAMES[next.day].toLowerCase()}`;
+}
+
+/** "Abierto ahora · cierra a las 00:30" / "Abrimos hoy a las 20:00". */
 export function describeStatus(status: OpenStatus): string {
-  if (status.open) return `Abierto ahora · cierra a las ${status.closesAt}`;
+  if (status.open) return `Abierto ahora · cierra ${atTime(status.closesAt)}`;
   const next = status.nextOpening;
   if (!next) return "Por ahora no tenemos horarios de atención cargados.";
-  if (next.daysAhead === 0) return `Abrimos hoy a las ${next.time}`;
-  if (next.daysAhead === 1) return `Abrimos mañana a las ${next.time}`;
-  return `Abrimos el ${WEEKDAY_NAMES[next.day].toLowerCase()} a las ${next.time}`;
+  return `Abrimos ${openingDay(next)} ${atTime(next.time)}`;
 }
 
-/** Cuándo abre, en corto: "hoy 20:00", "mañana 11:00" o "jueves 20:00". */
-export function nextOpeningLabel(next: { day: Weekday; time: string; daysAhead: number }): string {
-  const when = next.daysAhead === 0 ? "hoy" : next.daysAhead === 1 ? "mañana" : WEEKDAY_NAMES[next.day].toLowerCase();
-  return `${when} ${next.time}`;
+export type StatusTone = "open" | "closed" | "paused" | "unknown";
+
+/**
+ * Lo que dice la tarjeta de estado de la cabecera. Sin la hora (en el servidor, antes
+ * de hidratar) no se sabe si está abierto: queda neutra hasta que se sepa.
+ */
+export function statusCard(
+  status: OpenStatus | null,
+  paused = false,
+): { tone: StatusTone; title: string; detail: string } {
+  if (paused) return { tone: "paused", title: "Pedidos en pausa", detail: "Volvemos en un rato" };
+  if (!status) return { tone: "unknown", title: "Horarios", detail: "Mirá cuándo atendemos" };
+  if (status.open) return { tone: "open", title: "Abierto ahora", detail: `Cierra ${atTime(status.closesAt)}` };
+  const next = status.nextOpening;
+  if (!next) return { tone: "closed", title: "Cerrado", detail: "Sin horarios cargados" };
+  return { tone: "closed", title: "Cerrado ahora", detail: `Abre ${openingDay(next)} ${atTime(next.time)}` };
 }
 
-/** "11:00 a 14:30 y 19:30 a 23:30" o "Cerrado". */
 export function formatDayRanges(ranges: TimeRange[]): string {
   if (!ranges.length) return "Cerrado";
   return ranges.map((r) => `${r.open} a ${r.close}`).join(" y ");

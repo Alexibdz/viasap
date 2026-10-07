@@ -1,0 +1,67 @@
+/* ==========================================================================
+   "Tipográfico" (Rotisería Alexis)
+   Papel cálido, el nombre en Anton en mayúsculas con la última palabra
+   resaltada en amarillo. Las categorías son tarjetas que se despliegan, con su
+   emoji, y los productos van en lista (la carta no tiene fotos).
+   Colores, fuentes y radios en tipografico.ts.
+   ========================================================================== */
+[data-design="tipografico"] .store-name {
+  letter-spacing: 0;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+[data-design="tipografico"] .store-name-last {
+  width: fit-content;
+  margin: 6px auto 0;
+  padding: 6px 10px 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+[data-design="tipografico"] .store-location {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+[data-design="tipografico"] .store-tagline {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* El logo tiene partes blancas: va sobre un círculo oscuro, con borde de tinta. */
+[data-design="tipografico"] .store-logo {
+  border: 2px solid var(--ink);
+}
+
+[data-design="tipografico"] .store-status {
+  border: 1px solid var(--line);
+}
+
+[data-design="tipografico"] .store-chip {
+  border-color: var(--line-strong);
+}
+
+[data-design="tipografico"] .store-chip-label {
+  font-weight: 800;
+}
+
+/* Ofertas sin foto: tinta sobre naranja, con el nombre en Anton. */
+[data-design="tipografico"] .offer-name {
+  font-family: var(--font-name), sans-serif;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+[data-design="tipografico"] .menu-category-name {
+  font-weight: 800;
+}
+
+[data-design="tipografico"] .menu-category-emoji {
+  background: var(--paper);
+}

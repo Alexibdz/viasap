@@ -27,4 +27,12 @@ describe("tiendas guardadas con el formato anterior", () => {
     const store = upgradeStore(saved as unknown as StoreSeed);
     expect(store.business.delivery.zones).toEqual([{ id: "hasta-2-km", name: "Hasta 2 km", cost: 900 }]);
   });
+
+  it("descarta lo que el local ya no configura: colores, frase destacada y foto para compartir", () => {
+    const saved = structuredClone(rotiseriaAlexis) as unknown as { business: Record<string, unknown> };
+    Object.assign(saved.business, { theme: { primary: "#e8590c" }, highlight: "Frase", coverUrl: "/demo/x.jpg" });
+    const { business } = upgradeStore(saved as unknown as StoreSeed);
+    expect(["theme", "highlight", "coverUrl"].filter((key) => key in business)).toEqual([]);
+    expect(business.logoUrl).toBe(rotiseriaAlexis.business.logoUrl);
+  });
 });

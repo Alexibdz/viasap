@@ -118,6 +118,14 @@ describe("menú", () => {
     expect(findProduct(rotiseriaAlexis.menu, "smash")).toBeNull();
   });
 
+  it("la hamburguesería tiene torpedos y panchos, y no postres", () => {
+    const names = (id: string) =>
+      costaneraBurgers.menu.find((c) => c.id === id)?.subcategories.flatMap((s) => s.products.map((p) => p.name));
+    expect(names("torpedos")).toHaveLength(3);
+    expect(names("panchos")).toEqual(["Pancho simple", "Pancho XXL"]);
+    expect(names("postres")).toBeUndefined();
+  });
+
   it("resuelve lo que incluye cada oferta con los precios del menú", () => {
     const offers = menuOffers(rotiseriaAlexis.menu);
     expect(Object.keys(offers)).toEqual(["pizza-y-empanadas", "promo-2-muzza", "dos-panchos-coca"]);

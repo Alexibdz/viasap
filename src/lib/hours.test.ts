@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeStatus, formatDayRanges, getOpenStatus, nextOpeningLabel } from "./hours";
+import { atTime, describeStatus, formatDayRanges, getOpenStatus, statusCard } from "./hours";
 import type { WeeklySchedule } from "./types";
 
 const TZ = "America/Argentina/Buenos_Aires";
@@ -82,10 +82,30 @@ describe("textos de horarios", () => {
     );
   });
 
-  it("dice cuándo abre, en corto, para la portada", () => {
-    expect(nextOpeningLabel({ day: 5, time: "20:00", daysAhead: 0 })).toBe("hoy 20:00");
-    expect(nextOpeningLabel({ day: 6, time: "11:00", daysAhead: 1 })).toBe("mañana 11:00");
-    expect(nextOpeningLabel({ day: 3, time: "20:00", daysAhead: 4 })).toBe("miércoles 20:00");
+  it("arma la tarjeta de estado de la cabecera", () => {
+    expect(statusCard({ open: true, closesAt: "00:30" })).toEqual({
+      tone: "open",
+      title: "Abierto ahora",
+      detail: "Cierra a las 00:30",
+    });
+    expect(statusCard({ open: true, closesAt: "01:30" }).detail).toBe("Cierra a la 01:30");
+    expect(statusCard({ open: false, nextOpening: { day: 5, time: "20:00", daysAhead: 0 } })).toEqual({
+      tone: "closed",
+      title: "Cerrado ahora",
+      detail: "Abre hoy a las 20:00",
+    });
+    expect(statusCard({ open: false, nextOpening: { day: 3, time: "20:00", daysAhead: 4 } }).detail).toBe(
+      "Abre el miércoles a las 20:00",
+    );
+    expect(statusCard({ open: false, nextOpening: null }).detail).toBe("Sin horarios cargados");
+    // En pausa manda la pausa, abierto o no; sin la hora, neutra.
+    expect(statusCard({ open: true, closesAt: "00:30" }, true)).toEqual({
+      tone: "paused",
+      title: "Pedidos en pausa",
+      detail: "Volvemos en un rato",
+    });
+    expect(statusCard(null).tone).toBe("unknown");
+    expect(atTime("13:00")).toBe("a las 13:00");
   });
 
   it("formatea las franjas de un día", () => {

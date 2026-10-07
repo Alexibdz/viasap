@@ -1,8 +1,8 @@
 import type { OptionGroup, Product, StoreSeed } from "@/lib/types";
 
 // Costanera Burgers: hamburguesería de ejemplo en la costanera de Victoria, con
-// fotos de ejemplo (Unsplash). Los pedidos llegan al mismo
-// WhatsApp que Rotisería Alexis: para probar sin molestar, cambiá `whatsapp`.
+// fotos de ejemplo (Unsplash); torpedos y panchos todavía sin foto. Los pedidos
+// llegan al mismo WhatsApp que Rotisería Alexis: para probar sin molestar, cambiá `whatsapp`.
 
 const burgerOptions: OptionGroup[] = [
   {
@@ -38,6 +38,18 @@ const burgerOptions: OptionGroup[] = [
   },
 ];
 
+const hotDogSauces: OptionGroup = {
+  id: "aderezos",
+  name: "Aderezos",
+  min: 0,
+  options: [
+    { id: "mayonesa", name: "Mayonesa", price: 0 },
+    { id: "ketchup", name: "Ketchup", price: 0 },
+    { id: "mostaza", name: "Mostaza", price: 0 },
+    { id: "salsa-smash", name: "Salsa smash", price: 0 },
+  ],
+};
+
 function burger(id: string, name: string, description: string, imageUrl: string, prices: number[]): Product {
   const sizes = ["Simple", "Doble", "Triple"];
   return {
@@ -56,9 +68,7 @@ export const costaneraBurgers: StoreSeed = {
     slug: "costanera-burgers",
     name: "Costanera Burgers",
     description: "Hamburguesas smash y papas, frente al río.",
-    highlight: "Todas las burgers vienen con papas.",
     logoUrl: "/demo/logos/costanera-burgers.png",
-    coverUrl: "/demo/hamburguesa-combo.jpg",
     whatsapp: "5493436617446",
     address: {
       street: "Av. Costanera",
@@ -78,7 +88,6 @@ export const costaneraBurgers: StoreSeed = {
       6: [{ open: "20:00", close: "01:30" }],
     },
     acceptOrdersWhenClosed: true,
-    theme: { primary: "#f29100", accent: "#ffd43b" },
     delivery: {
       pickup: true,
       delivery: true,
@@ -217,6 +226,64 @@ export const costaneraBurgers: StoreSeed = {
       ],
     },
     {
+      id: "torpedos",
+      emoji: "🥖",
+      name: "Torpedos",
+      subcategories: [
+        {
+          id: "torpedos",
+          name: "Torpedos",
+          products: [
+            {
+              id: "torpedo-hamburguesa",
+              name: "Torpedo de hamburguesa",
+              description: "Medallón, cheddar, lechuga, tomate y salsa de la casa en pan de torpedo, con papas.",
+              price: 9000,
+            },
+            {
+              id: "torpedo-milanesa",
+              name: "Torpedo de milanesa",
+              description: "Milanesa de carne, lechuga, tomate y mayo en pan de torpedo, con papas.",
+              price: 9000,
+            },
+            {
+              id: "super-torpedo",
+              name: "Súper torpedo 40 cm",
+              description: "De hamburguesa, completo y con papas. Comen 4 o 5 personas.",
+              price: 16000,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "panchos",
+      emoji: "🌭",
+      name: "Panchos",
+      subcategories: [
+        {
+          id: "panchos",
+          name: "Panchos",
+          products: [
+            {
+              id: "pancho-simple",
+              name: "Pancho simple",
+              description: "Salchicha en pan de pancho, con los aderezos que quieras.",
+              price: 2500,
+              optionGroups: [hotDogSauces],
+            },
+            {
+              id: "pancho-xxl",
+              name: "Pancho XXL",
+              description: "Salchicha larga, cheddar y papas pay.",
+              price: 4500,
+              optionGroups: [hotDogSauces],
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: "papas",
       emoji: "🍟",
       name: "Papas y ensaladas",
@@ -251,27 +318,6 @@ export const costaneraBurgers: StoreSeed = {
               description: "Lechuga, tomate y cebolla.",
               imageUrl: "/demo/ensalada.jpg",
               price: 2800,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: "postres",
-      emoji: "🍮",
-      name: "Postres",
-      imageUrl: "/demo/postre.jpg",
-      subcategories: [
-        {
-          id: "postres",
-          name: "Postres",
-          products: [
-            {
-              id: "postre-del-dia",
-              name: "Postre del día",
-              description: "Preguntanos por WhatsApp cuál es el de hoy.",
-              imageUrl: "/demo/postre.jpg",
-              price: 3500,
             },
           ],
         },

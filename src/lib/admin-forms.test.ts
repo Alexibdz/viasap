@@ -131,7 +131,7 @@ describe("productos", () => {
       draft({
         id: "papas-casa",
         name: "Papas rústicas",
-        categoryId: "postres",
+        categoryId: "panchos",
         subcategoryId: NEW_GROUP,
         newGroupName: "Acompañamientos",
         hasVariants: false,
@@ -146,7 +146,7 @@ describe("productos", () => {
     placeProduct(menu, result.value);
     const moved = findProduct(menu, "papas-casa");
     expect(moved?.product).toMatchObject({ id: "papas-casa", name: "Papas rústicas", price: 5000 });
-    expect(moved?.sectionLabel).toBe("Postres · Acompañamientos");
+    expect(moved?.sectionLabel).toBe("Panchos · Acompañamientos");
     expect(menu.find((c) => c.id === "papas")?.subcategories[0].products.map((p) => p.id)).toEqual([
       "papas-fritas",
       "ensalada-mixta",
@@ -306,14 +306,12 @@ describe("ajustes", () => {
     const result = buildStoreInfo({
       name: " Doble Queso ",
       description: "",
-      highlight: "  Todas   con papas ",
       whatsapp: "0343 15 412-3456",
       instagram: "@doblequeso",
       address: { street: "Sarmiento 450", city: "Victoria", province: "Entre Ríos", lat: -32.6, lng: -60.1 },
     });
     expect(result.ok && result.value).toMatchObject({
       name: "Doble Queso",
-      highlight: "Todas con papas",
       whatsapp: "5493434123456",
       instagram: "doblequeso",
     });

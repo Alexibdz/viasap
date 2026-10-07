@@ -31,7 +31,12 @@ export function upgradeZones(zones: unknown): DeliveryZone[] {
   });
 }
 
+/** Datos que el local ya no configura: el diseño, la frase destacada y la foto para compartir. */
+const RETIRED_FIELDS = ["theme", "highlight", "coverUrl"];
+
 export function upgradeStore(store: StoreSeed): StoreSeed {
+  const business = store.business as unknown as Record<string, unknown>;
+  for (const key of RETIRED_FIELDS) delete business[key];
   const zones = store.business.delivery.zones as unknown[];
   if (zones.some((zone) => typeof (zone as LegacyZone).name !== "string" || typeof (zone as LegacyZone).id !== "string")) {
     store.business.delivery.zones = upgradeZones(zones);
