@@ -1,7 +1,7 @@
 import { themeCss } from "@/lib/theme";
 import type { Theme } from "@/lib/types";
 import { brasa } from "./brasa";
-import { tipografico } from "./tipografico";
+import { carta } from "./carta";
 
 // Diseño de cada negocio. Lo arma viasap en el código; el local no lo configura.
 // Los componentes y el comportamiento son los mismos para todos los negocios: el
@@ -33,7 +33,7 @@ const base: StoreDesign = {
 
 const bySlug: Record<string, StoreDesign> = {
   "costanera-burgers": brasa,
-  "rotiseria-alexis": tipografico,
+  "rotiseria-alexis": carta,
 };
 
 export function designFor(slug: string): StoreDesign {

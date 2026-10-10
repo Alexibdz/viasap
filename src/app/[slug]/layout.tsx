@@ -10,7 +10,7 @@ import { getBusiness, getMenu, listBusinesses } from "@/lib/data";
 import { NavigationTracker } from "@/lib/navigation";
 // Estilos propios de cada diseño, todos bajo [data-design="<id>"].
 import "@/designs/brasa.css";
-import "@/designs/tipografico.css";
+import "@/designs/carta.css";
 
 export async function generateStaticParams() {
   const businesses = await listBusinesses();

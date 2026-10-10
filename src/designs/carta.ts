@@ -1,12 +1,13 @@
 import type { StoreDesign } from "./index";
 
 /**
- * "Tipográfico" (Rotisería Alexis): papel cálido, el nombre en Anton con la última
- * palabra resaltada en amarillo y Archivo para el resto. Los productos van en lista:
- * la carta no tiene fotos.
+ * "Carta" (Rotisería Alexis): como la carta impresa de un restaurante. Papel cálido,
+ * el nombre en Anton con la última palabra en amarillo, los productos en renglones
+ * con puntos hasta el precio y las descripciones en cursiva (Instrument Serif).
+ * Las categorías siguen siendo tarjetas con emoji que se despliegan.
  */
-export const tipografico: StoreDesign = {
-  id: "tipografico",
+export const carta: StoreDesign = {
+  id: "carta",
   theme: { primary: "#f29100", accent: "#f2b631" },
   themeColor: "#f3ead8",
   products: "rows",
@@ -35,7 +36,7 @@ export const tipografico: StoreDesign = {
     "--name-fit": "0.5",
     "--r-status": "16px",
     "--r-chip": "14px",
-    "--r-offer": "22px",
+    "--r-offer": "18px",
     "--r-tile": "18px",
     "--r-btn": "12px",
   },

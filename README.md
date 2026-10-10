@@ -94,7 +94,7 @@ producto y checkout. El diseño cambia cómo se ven:
 | Local | Diseño |
 | --- | --- |
 | Costanera Burgers | **Brasa**: oscuro, Instrument Serif para el nombre (la última palabra en cursiva naranja), Space Mono para las etiquetas; categorías en tarjetas con emoji que se despliegan, con los productos en tiles de a dos. Hamburguesas arranca abierta. |
-| Rotisería Alexis | **Tipográfico**: papel cálido, el nombre en Anton con la última palabra resaltada en amarillo, categorías en tarjetas con emoji y productos en lista. |
+| Rotisería Alexis | **Carta**: como la carta impresa de un restaurante. Papel cálido, el nombre en Anton con la última palabra resaltada en amarillo, categorías en tarjetas con emoji y los productos en renglones con puntos hasta el precio y la descripción en cursiva. |
 
 ## Cómo está armado
 
